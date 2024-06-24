@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import express, { Express } from "express";
 import {
   APP_HOSTNAME,
   SERVER_PORT,
   CLIENT_ID,
   CLIENT_SECRET,
+  URI,
 } from "./modules/env";
 import session from "express-session";
 import passport from "passport";
@@ -53,6 +55,7 @@ app.use(
   })
 );
 
+
 // Passport
 app.use(passport.initialize());
 app.use(passport.session());
@@ -101,7 +104,7 @@ app.get('/auth/google/callback', passport.authenticate('google'), async (req, re
             const newUser = {
                 email: userProfile.emails[0].value,
                 name: userProfile.displayName,
-                photo: userProfile.photos[0].value
+                photo: userProfile.photos[0].value,
             };
 
             await writeToDatabase('users', newUser);

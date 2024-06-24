@@ -1,9 +1,12 @@
 /* eslint-disable no-unused-vars */
 import { Collection, Db, DeleteResult, Filter, InsertOneResult, MongoClient, OptionalId, UpdateResult, WithId } from "mongodb";
-import { CLIENT_DB, URI } from "./env.ts";
+import { CLIENT_DB } from "./env.ts";
 
-const client: MongoClient = new MongoClient( URI! );
+if (!process.env.MONGODB_URI) {
+  throw new Error('MONGODB_URI is not defined in the environment variables');
+}
 
+const client: MongoClient = new MongoClient(process.env.MONGODB_URI, {});
 /**
  * Connects to the MongoDB database
  * 
@@ -228,7 +231,7 @@ const mongoDBFuncs = {
   writeToDatabase,
   modifyInDatabase,
   getItemsFromDatabase,
-  deleteFromDatabase
+  deleteFromDatabase,
 };
 
 export default mongoDBFuncs;
