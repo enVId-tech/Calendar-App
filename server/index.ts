@@ -16,6 +16,7 @@ import {
   generateRandomNumber,
   permanentEncryptPassword,
 } from "./modules/encryption";
+import { getItemsFromDatabase, writeToDatabase } from "./modules/mongoDB";
 
 const MongoDBStore = connectMongoDBSession(session);
 
@@ -43,7 +44,7 @@ app.use(
     store: new MongoDBStore({
       uri: process.env.MONGODB_URI!,
       databaseName: process.env.CLIENT_DB,
-      collection: "sessions",
+      collection: "users",
       expires: 1000 * 60 * 60 * 24 * 31, // 1 month
     }),
     cookie: {
@@ -81,7 +82,36 @@ passport.use(
 
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 app.get('/auth/google/callback', passport.authenticate('google'), async (req, res) => {
-    res.redirect('/');
+    try {
+        const userProfile = req.user;
+
+        if (!userProfile) {
+            throw new Error('No user profile found');
+        }
+
+        const fileData = JSON.parse(await getItemsFromDatabase('users'));
+
+        if (!fileData) {
+            throw new Error('No data found');
+        }
+
+        const user = fileData.find((item: object) => item.email === userProfile.emails[0].value);
+
+        if (!user) {
+            const newUser = {
+                email: userProfile.emails[0].value,
+                name: userProfile.displayName,
+                photo: userProfile.photos[0].value
+            };
+
+            await writeToDatabase('users', newUser);
+        } else {
+            req.session!.user = user;
+            res.redirect('/');
+        }
+    } catch (error: unknown) {
+        console.error('Error:', error);
+    }
 });
 
 app.get("/", (req, res) => {

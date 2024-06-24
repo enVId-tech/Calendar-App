@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Collection, Db, DeleteResult, Filter, MongoClient, UpdateResult } from "mongodb";
+import { Collection, Db, DeleteResult, Filter, InsertOneResult, MongoClient, OptionalId, UpdateResult, WithId } from "mongodb";
 import { CLIENT_DB, URI } from "./env.ts";
 
 const client: MongoClient = new MongoClient( URI! );
@@ -7,18 +7,20 @@ const client: MongoClient = new MongoClient( URI! );
 /**
  * Connects to the MongoDB database
  * 
- * @param {boolean} log Whether to log the database connection status
+ * @param {boolean} log (optional) Whether to log the database connection status
  * @returns void
  * @throws Error if an error occurs
  */
 async function connectToDatabase(log?: boolean): Promise<void> {
   try {
     await client.connect();
+
     if (log) {
       console.log("Connected to MongoDB");
     }
+    
     return;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error connecting to MongoDB: ${error}`);
     throw new Error(error as string);
   }
@@ -27,18 +29,20 @@ async function connectToDatabase(log?: boolean): Promise<void> {
 /**
  * Disconnects from the MongoDB database
  * 
- * @param {boolean} log Whether to log the database connection status
+ * @param {boolean} log (optional) Whether to log the database connection status
  * @returns void
  * @throws Error if an error occurs
  */
 async function disconnectFromDatabase(log?: boolean): Promise<void> {
   try {
     await client.close();
+
     if (log) {
       console.log("Disconnected from MongoDB");
     }
+
     return;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error disconnecting from MongoDB: ${error}`);
     throw new Error(error as string);
   }
@@ -47,24 +51,24 @@ async function disconnectFromDatabase(log?: boolean): Promise<void> {
 /**
  * Write data to the database collection.
  *
- * @param {object} data Data to be written to the database
  * @param {string} collectionName Name of the collection to write to
- * @param {boolean} log Whether to log the database connection status
+ * @param {object} data Data to be written to the database
+ * @param {boolean} log (optional) Whether to log the database connection status
  * @returns The ID of the inserted document
  * @returns Inserted boolean (T/F)
  * @throws CustomError if an error occurs
  */
 async function writeToDatabase(
-  data: any,
   collectionName: string,
-  log: boolean
-): Promise<any> {
+  data: unknown,
+  log?: boolean
+): Promise<[object, boolean]> {
   try {
     await connectToDatabase(log);
     const database: Db = client.db(CLIENT_DB);
-    const collection: Collection<any> = database.collection(collectionName);
+    const collection: Collection<Db> = database.collection(collectionName);
 
-    const result: any = await collection.insertOne(data);
+    const result: InsertOneResult<Db> = await collection.insertOne(data as OptionalId<Db>);
 
     let boolInsert: boolean;
 
@@ -79,9 +83,9 @@ async function writeToDatabase(
     await disconnectFromDatabase(log);
 
     return [result.insertedId, boolInsert];
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error writing to database: ${error}`);
-    throw new Error(error);
+    throw new Error(error as string);
   }
 }
 /**
@@ -93,8 +97,8 @@ async function writeToDatabase(
  * @throws Error if an error occurs
  */
 async function modifyInDatabase(
-  filter: Filter<any>,
-  update: any, // Change to a more specific type if possible
+  filter: Filter<Db>,
+  update: unknown, // Change to a more specific type if possible
   collectionName: string,
   log?: boolean
 ): Promise<number> {
@@ -102,7 +106,7 @@ async function modifyInDatabase(
     await connectToDatabase(log);
 
     const database: Db = client.db(CLIENT_DB);
-    const collection: Collection<any> = database.collection(collectionName);
+    const collection: Collection<Db> = database.collection(collectionName);
 
     const updateData: object = { $set: update };
 
@@ -112,12 +116,14 @@ async function modifyInDatabase(
       console.log("\x1b[32m", "Modified", result.modifiedCount, "document(s)");
     } else if (log && result.modifiedCount === 0) {
       console.log("\x1b[32m", "No documents modified");
+    } else {
+      console.error("\x1b[31m", "Error modifying document");
     }
 
     await disconnectFromDatabase(log);
 
     return result.modifiedCount;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("\x1b[31m", `Error modifying document:, ${error}`);
     throw new Error(error as string);
   }
@@ -132,9 +138,9 @@ async function modifyInDatabase(
  * @throws Error if an error occurs
  */
 async function deleteFromDatabase(
-  filter: Filter<any>,
+  filter: Filter<Document> | undefined,
   collectionName: string,
-  type: 1 | 2 | "one" | "many" = 1,
+  type: 1 | 2 | "one" | "many",
   log?: boolean
 ): Promise<number> {
   try {
@@ -167,13 +173,15 @@ async function deleteFromDatabase(
       await disconnectFromDatabase(log);
 
       return result.deletedCount;
+    } else {
+      console.error("\x1b[31m", "Invalid delete type");
     }
 
     await disconnectFromDatabase(log);
 
     // Add a default return value for any other cases
     return 0;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("\x1b[31m", `Error deleting document(s):, ${error}`);
     throw new Error(error as string);
   }
@@ -182,23 +190,24 @@ async function deleteFromDatabase(
 /**
  * 
  * @param {string} collectionName The name of the collection to get items from
- * @param {number} dataId The ID of the data to get from the database
+ * @param {boolean} log (optional) Set to true to log deletion messages
+ * @param {number} dataId (optional) The ID of the data to get from the database
  * @returns Returns the items from the database as a JSON string
  * @throws Error if an error occurs
  */
 async function getItemsFromDatabase(
   collectionName: string,
   log?: boolean,
-  dataId?: any
-): Promise<any> {
+  dataId?: Filter<Db>
+): Promise<string> {
   try {
     await connectToDatabase(log);
 
     const database: Db = client.db(CLIENT_DB);
-    const collection: Collection<any> = database.collection(collectionName);
+    const collection: Collection<Db> = database.collection(collectionName);
     const projection: object = { _id: 0 };
 
-    let items: object;
+    let items: WithId<Db> | WithId<Db>[] | null | undefined = undefined;
 
     if (dataId) {
       items = await collection.findOne( dataId, { projection: projection });
@@ -209,9 +218,9 @@ async function getItemsFromDatabase(
     await disconnectFromDatabase(log);
 
     return JSON.stringify(items);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("\x1b[31m", `Error getting items from database:, ${error}`);
-    throw new Error(error);
+    throw new Error(error as string);
   }
 }
 
