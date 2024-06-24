@@ -46,7 +46,7 @@ const LoginPage: React.FC = (): React.JSX.Element => {
                     <hr />
 
                     <div id="googleLogin">
-                        <button>Login with Google</button>
+                        <a href='http://localhost:3001'>Login with Google</a>
                     </div>
                 </div>
             </div>

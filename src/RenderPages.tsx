@@ -4,6 +4,8 @@ import LoginPage from './pages/credentials/login';
 import LogoutPage from './pages/credentials/logout';
 import HomePage from './pages/main/homepage';
 
+// SCSS
+import './assets/scss/global.scss';
 
 const RenderPages: React.FC = (): React.JSX.Element => {
   return (
