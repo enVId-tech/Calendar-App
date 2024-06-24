@@ -1,16 +1,17 @@
 import React from 'react';
 import '../../assets/scss/homepage.scss';
 import UserData from '../../assets/ts/interfaces';
+import getUserData from '../../assets/ts/getUserData';
 
 const HomePage: React.FC = (): React.JSX.Element => {
-    const [data, setData] = React.useState<UserData | null>({ username: 'Erick Tran' });
+    const [data, setData] = React.useState<UserData | null | undefined>({ username: 'Erick Tran' });
 
     React.useEffect(() => {
         try {
             setUserData({ username: 'Erick Tran' });
-            // getUserData().then((result: UserData | null | undefined) => {
-            //     setData(result);
-            // });
+            getUserData().then((result: UserData | null | undefined) => {
+                setData(result);
+            });
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }
