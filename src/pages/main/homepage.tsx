@@ -26,8 +26,8 @@ const HomePage: React.FC = (): React.JSX.Element => {
         <section id="home">
             <div id="container">
                 <div id="content">
-                    <h1>Welcome {data!.username}!</h1>
-                    <p>This is a simple homepage.</p>
+                    <h1>Welcome, {data?.username}!</h1>
+                    <p>Click on the links above to navigate the website.</p>
                 </div>
             </div>
         </section>
