@@ -116,6 +116,7 @@ async function modifyInDatabase(
     if (typeof filter === "string") {
       filter = { _id: filter };
     }
+    
     const result: UpdateResult = await collection.updateOne(filter, updateData);
 
     if (log && result.modifiedCount > 0) {

@@ -15,7 +15,7 @@ const Sidebar: React.FC = (): React.JSX.Element => {
         getUserData(userId).then((result: UserData | null | undefined) => {
             setData(result);
         });
-    });
+    }, []);
 
     return (
         <div id="sidebar">

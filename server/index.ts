@@ -227,19 +227,13 @@ app.post("/get/user", async (req, res) => {
             throw new Error("No data found");
         }
 
-        const fileData = JSON.parse(await getItemsFromDatabase("users"));
+        const fileData = JSON.parse(await getItemsFromDatabase("users", true, data.dataId));
 
         if (!fileData) {
             throw new Error("No data found");
         }
 
-        const user = fileData.find((item) => item.userId === data.dataId);
-
-        if (!user) {
-            throw new Error("No user found");
-        }
-
-        res.status(200).json(user);
+        res.status(200).json(fileData);
     } catch (error: unknown) {
         console.error("Error:", error);
     }
@@ -253,7 +247,7 @@ app.post("/credentials/logout", async (req, res) => {
             return res.status(400).json({ status: 400, message: "No data found" });
         }
 
-        await getItemsFromDatabase("users", true, { session: req.sessionID });
+        await getItemsFromDatabase("users", true, data.userId);
 
         req.session.destroy((err) => {
             if (err) {
