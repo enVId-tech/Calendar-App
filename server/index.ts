@@ -20,23 +20,12 @@ import {
 import { getItemsFromDatabase, writeToDatabase } from "./modules/mongoDB";
 import encrypts from "./modules/encryption";
 import httpProxy from "http-proxy";
-import request from "request";
 
 const proxy = httpProxy.createProxyServer();
 
 const MongoDBStore = connectMongoDBSession(session);
 
 const app: Express = express();
-
-request({
-    url: 'http://localhost:5173',
-    method: 'GET',
-    proxy: 'http://localhost:3001'
-}, (error, response, body) => {
-    if (!error && response.statusCode === 200) {
-        console.log(body);
-    }
-});
 
 app.use(express.json());
 app.use(cors());
@@ -96,6 +85,11 @@ passport.use(
         }
     )
 );
+
+// Proxy (to the client, on port 5173)
+app.all("/*", (req, res) => {
+    proxy.web(req, res, { target: "http://localhost:5173" });
+});
 
 app.get(
     "/auth/google",
@@ -169,9 +163,10 @@ app.get(
 );
 
 app.get("/auth/logout", (req, res) => {
-    req.session!.destroy(() => {
-        res.redirect("/");
-    });
+    // req.session!.destroy(() => {
+    //     res.redirect("/api/");
+    // });
+    res.redirect("/");
 });
 
 app.get("/login/guest", async (req, res) => {

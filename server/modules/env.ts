@@ -30,7 +30,7 @@ const APP_HOSTNAME: string = process.env.APP_HOSTNAME! || "localhost";
 /**
  * The port number for the client.
  */
-const CLIENT_PORT: number = parseInt(process.env.CLIENT_PORT!) || 3000;
+// const CLIENT_PORT: number = parseInt(process.env.CLIENT_PORT!) || 3000;
 
 /**
  * The port number for the server.
@@ -43,7 +43,7 @@ const env: object = {
     CLIENT_ID,
     CLIENT_SECRET,
     APP_HOSTNAME,
-    CLIENT_PORT,
+    // CLIENT_PORT,
     SERVER_PORT,
 }
 
@@ -54,6 +54,6 @@ export {
     CLIENT_ID,
     CLIENT_SECRET,
     APP_HOSTNAME,
-    CLIENT_PORT,
+    // CLIENT_PORT,
     SERVER_PORT,
 }

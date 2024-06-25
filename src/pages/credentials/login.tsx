@@ -1,6 +1,11 @@
 import React from 'react';
 import '../../assets/scss/login.scss';
 
+interface LoginData {
+    status: number;
+    message: string;
+}
+
 const LoginPage: React.FC = (): React.JSX.Element => {
     const username = React.useRef<HTMLInputElement>(null);
     const password = React.useRef<HTMLInputElement>(null);
@@ -18,8 +23,8 @@ const LoginPage: React.FC = (): React.JSX.Element => {
         }
 
         try {
-            const response = await fetch('/api/login/user', jsonData);
-            const data = await response.json();
+            const response: Response = await fetch('/api/login/user', jsonData);
+            const data: LoginData = await response.json();
 
             if (data.status === 200) {
                 console.log('Login successful!');
@@ -38,8 +43,8 @@ const LoginPage: React.FC = (): React.JSX.Element => {
 
     const guestLogin = async (): Promise<void> => {
         try {
-            const response = await fetch('/api/login/guest');
-            const data = await response.json();
+            const response: Response = await fetch('/api/login/guest');
+            const data: LoginData = await response.json();
 
             if (data.status === 200) {
                 console.log('Login successful!');
