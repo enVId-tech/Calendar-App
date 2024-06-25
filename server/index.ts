@@ -86,7 +86,10 @@ passport.use(
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 app.get('/auth/google/callback', passport.authenticate('google'), async (req, res) => {
     try {
-        const userProfile = req.user;
+
+        const userProfile: any = req.user;
+
+        console.log('User profile:\n', userProfile);
 
         if (!userProfile) {
             throw new Error('No user profile found');
@@ -98,13 +101,24 @@ app.get('/auth/google/callback', passport.authenticate('google'), async (req, re
             throw new Error('No data found');
         }
 
-        const user = fileData.find((item: object) => item.email === userProfile.emails[0].value);
+        const user = fileData.find((item) => item.email === userProfile.emails[0].value);
+
+        res.cookie('user', userProfile.emails[0].value, { maxAge: 900000, httpOnly: true });
+        res.cookie('name', userProfile.displayName, { maxAge: 900000, httpOnly: true });
+
+        res.redirect('http://localhost:3000/');
 
         if (!user) {
             const newUser = {
-                // email: userProfile.emails[0].value,
-                // name: userProfile.displayName,
-                // photo: userProfile.photos[0].value,
+                displayName: userProfile.displayName,
+                firstName: userProfile.name.givenName,
+                lastName: userProfile.name.familyName,
+                email: userProfile.emails[0].value,
+                profilePicture: userProfile.photos[0].value,
+                hd: userProfile._json.hd,
+                calendar: {},
+                userId: await generateRandomNumber(64, 'alphanumeric'),
+                session: req.sessionID,
             };
 
             await writeToDatabase('users', newUser);

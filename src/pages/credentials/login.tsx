@@ -45,21 +45,7 @@ const LoginPage: React.FC = (): React.JSX.Element => {
 
                     <hr />
 
-                    <script src="https://accounts.google.com/gsi/client" async></script>
-                    <div id=""
-                        data-client_id="
-10436774139-7omf3u2h07hb1d622lajfsmt73gh2v55.apps.googleusercontent.com"
-                        data-login_uri="https://localhost:3001/auth/google"
-                        data-auto_prompt="false">
-                    </div>
-                    <div className="g_id_signin"
-                        data-type="standard"
-                        data-size="large"
-                        data-theme="outline"
-                        data-text="sign_in_with"
-                        data-shape="rectangular"
-                        data-logo_alignment="left">
-                    </div>
+                    <a href='http://localhost:3001/auth/google' className="googlesignin"><span className="fa fa-google" />Register/Sign In with Google</a>
                 </div>
             </div>
         </section>
