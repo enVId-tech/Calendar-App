@@ -100,7 +100,7 @@ async function writeToDatabase(
  * @throws Error if an error occurs
  */
 async function modifyInDatabase(
-  filter: Filter<Db>,
+  filter: string | object,
   update: unknown, // Change to a more specific type if possible
   collectionName: string,
   log?: boolean
@@ -113,6 +113,9 @@ async function modifyInDatabase(
 
     const updateData: object = { $set: update };
 
+    if (typeof filter === "string") {
+      filter = { _id: filter };
+    }
     const result: UpdateResult = await collection.updateOne(filter, updateData);
 
     if (log && result.modifiedCount > 0) {
@@ -194,14 +197,14 @@ async function deleteFromDatabase(
  * 
  * @param {string} collectionName The name of the collection to get items from
  * @param {boolean} log (optional) Set to true to log deletion messages
- * @param {number} dataId (optional) The ID of the data to get from the database
+ * @param {string} dataId (optional) The ID of the data to get from the database
  * @returns Returns the items from the database as a JSON string
  * @throws Error if an error occurs
  */
 async function getItemsFromDatabase(
   collectionName: string,
   log?: boolean,
-  dataId?: Filter<Db>
+  dataId?: string 
 ): Promise<string> {
   try {
     await connectToDatabase(log);
@@ -213,7 +216,7 @@ async function getItemsFromDatabase(
     let items: WithId<Db> | WithId<Db>[] | null | undefined = undefined;
 
     if (dataId) {
-      items = await collection.findOne( dataId, { projection: projection });
+      items = await collection.findOne({ dataId }, { projection: projection });
     } else {
       items = await collection.find({}).toArray();
     }

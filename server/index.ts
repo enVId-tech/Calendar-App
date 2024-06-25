@@ -18,10 +18,11 @@ import {
     generateRandomNumber,
     permanentEncryptPassword,
 } from "./modules/encryption";
-import { getItemsFromDatabase, writeToDatabase } from "./modules/mongoDB";
+import { getItemsFromDatabase, modifyInDatabase, writeToDatabase } from "./modules/mongoDB";
 import encrypts from "./modules/encryption";
 import httpProxy from "http-proxy";
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import UserID from "./modules/interfaces";
 
 const proxy = httpProxy.createProxyServer();
 
@@ -100,7 +101,6 @@ app.get(
             const userProfile: GoogleStrategy.Profile =
                 req.user as GoogleStrategy.Profile;
 
-            console.log("User profile:\n", userProfile);
 
             if (!userProfile) {
                 throw new Error("No user profile found");
@@ -112,19 +112,19 @@ app.get(
                 throw new Error("No data found");
             }
 
+            console.log(userProfile.emails![0].value);
+            console.log(fileData);
+
             let user = fileData.find(
                 (item) => item.email === userProfile.emails![0].value
-            );
+            ) || null;
 
             if (!user) {
                 const newUser = {
                     displayName: userProfile.displayName,
                     firstName: userProfile.name!.givenName,
                     lastName: userProfile.name!.familyName,
-                    email: encrypts.encryptData(
-                        userProfile.emails![0].value,
-                        "aes-256-gcm"
-                    ),
+                    email: userProfile.emails![0].value,
                     profilePicture: userProfile.photos![0].value,
                     hd: userProfile._json.hd,
                     calendar: {},
@@ -142,28 +142,35 @@ app.get(
                     httpOnly: true,
                 });
             } else {
-                // user.latestSession = new Date();
 
-                // res.cookie("userId", user.userId, {
-                //     maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3
-                //     httpOnly: true,
-                // });
+                user.latestSession = new Date();
 
-                // await writeToDatabase("users", user);
+                delete user._id;
+
+                res.cookie("userId", user.userId, {
+                    maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3
+                    httpOnly: true,
+                });
+
+                await modifyInDatabase({ email: user.email }, user, "users");
             }
 
             res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
         } catch (error: unknown) {
-            console.error("Error:", error);
+            console.error("Error:", error as string);
         }
     }
 );
 
 app.get("/auth/logout", (req, res) => {
-    // req.session!.destroy(() => {
-    //     res.redirect("/api/");
-    // });
-    res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+    try {
+        req.session!.destroy(() => {
+            res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+        });
+        res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+    } catch (error: unknown) {
+        console.error("Error:", error as string);
+    }
 });
 
 app.get("/login/guest", async (req, res) => {
@@ -204,9 +211,35 @@ app.post("/calendar/user/data", async (req, res) => {
             throw new Error("No data found");
         }
 
-        await getItemsFromDatabase("calendar", true, { email: data.userId });
+        await getItemsFromDatabase("calendar", true, data.userId);
 
         res.status(200).json({ status: 200, message: "Data saved" });
+    } catch (error: unknown) {
+        console.error("Error:", error);
+    }
+});
+
+app.post("/get/user", async (req, res) => {
+    try {
+        const data: UserID = req.body;
+
+        if (!data) {
+            throw new Error("No data found");
+        }
+
+        const fileData = JSON.parse(await getItemsFromDatabase("users"));
+
+        if (!fileData) {
+            throw new Error("No data found");
+        }
+
+        const user = fileData.find((item) => item.userId === data.dataId);
+
+        if (!user) {
+            throw new Error("No user found");
+        }
+
+        res.status(200).json(user);
     } catch (error: unknown) {
         console.error("Error:", error);
     }
@@ -240,14 +273,14 @@ const proxyOptions = {
     target: `http://${APP_HOSTNAME}:${CLIENT_PORT}`,
     changeOrigin: true,
     ws: true, // Enable WebSocket proxying
-  };
-  
-  // Create the proxy middleware
-  const proxyVar = createProxyMiddleware(proxyOptions);
-  
-  // Use the proxy for all routes
-  app.use('/', proxyVar);
-  
+};
+
+// Create the proxy middleware
+const proxyVar = createProxyMiddleware(proxyOptions);
+
+// Use the proxy for all routes
+app.use('/', proxyVar);
+
 
 app.listen(SERVER_PORT, () => {
     console.log(`Server is running at http://${APP_HOSTNAME}:${SERVER_PORT}`);

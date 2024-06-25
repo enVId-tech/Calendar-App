@@ -5,23 +5,18 @@ import getUserData from '../../assets/ts/getUserData';
 import Sidebar from '../../assets/components/sidebar';
 
 const HomePage: React.FC = (): React.JSX.Element => {
-    const [data, setData] = React.useState<UserData | null | undefined>({ username: 'Erick Tran' });
+    const [data, setData] = React.useState<UserData | null | undefined>();
 
     React.useEffect(() => {
         try {
-            setUserData({ username: 'Erick Tran' });
-            getUserData().then((result: UserData | null | undefined) => {
+            const userId: string | null = document.cookie.split('=')[1];
+            getUserData(userId).then((result: UserData | null | undefined) => {
                 setData(result);
             });
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }
     }, []);
-
-    const setUserData = (data: UserData | null): void => {
-        setData(data);
-    }
-
 
     return (
         <section id="home">

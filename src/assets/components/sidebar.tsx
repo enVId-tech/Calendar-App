@@ -7,7 +7,12 @@ const Sidebar: React.FC = (): React.JSX.Element => {
     const [data, setData] = React.useState<UserData | null | undefined>();
 
     React.useEffect(() => {
-        getUserData().then((result: UserData | null | undefined) => {
+        const userId: string | null = document.cookie.split('=')[1];
+        console.log(userId);
+        // if (!userId) {
+        //     window.location.href = '/login';
+        // }
+        getUserData(userId).then((result: UserData | null | undefined) => {
             setData(result);
         });
     });
