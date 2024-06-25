@@ -86,11 +86,6 @@ passport.use(
     )
 );
 
-// Proxy (to the client, on port 5173)
-app.all("/*", (req, res) => {
-    proxy.web(req, res, { target: "http://localhost:5173" });
-});
-
 app.get(
     "/auth/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
@@ -220,20 +215,28 @@ app.post("/credentials/logout", async (req, res) => {
         const data = req.body;
 
         if (!data) {
-            throw new Error("No data found");
+            return res.status(400).json({ status: 400, message: "No data found" });
         }
 
         await getItemsFromDatabase("users", true, { session: req.sessionID });
 
-        req.session.destroy(() => {
-            res.redirect("/");
+        req.session.destroy((err) => {
+            if (err) {
+                console.error("Session destruction error:", err);
+                return res.status(500).json({ status: 500, message: "Error during logout" });
+            }
+            res.status(200).json({ status: 200, message: "Logged out" });
         });
-
-        res.status(200).json({ status: 200, message: "Logged out" });
-    } catch (error: unknown) {
+    } catch (error) {
         console.error("Error:", error);
+        res.status(500).json({ status: 500, message: "Internal server error" });
     }
 });
+
+// // Proxy (to the client, on port 5173)
+// app.all("/client/*", (req, res) => {
+//     proxy.web(req, res, { target: "http://localhost:5173" });
+// });
 
 app.listen(SERVER_PORT, () => {
     console.log(`Server is running at http://${APP_HOSTNAME}:${SERVER_PORT}`);
