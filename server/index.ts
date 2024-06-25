@@ -102,9 +102,9 @@ app.get('/auth/google/callback', passport.authenticate('google'), async (req, re
 
         if (!user) {
             const newUser = {
-                email: userProfile.emails[0].value,
-                name: userProfile.displayName,
-                photo: userProfile.photos[0].value,
+                // email: userProfile.emails[0].value,
+                // name: userProfile.displayName,
+                // photo: userProfile.photos[0].value,
             };
 
             await writeToDatabase('users', newUser);
@@ -117,8 +117,26 @@ app.get('/auth/google/callback', passport.authenticate('google'), async (req, re
     }
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
+app.get('/auth/logout', (req, res) => {
+    req.session!.destroy(() => {
+        res.redirect('/');
+    });
+});
+
+app.post('/calendar/user/data', async (req, res) => {
+    try {
+        const data = req.body;
+
+        if (!data) {
+            throw new Error('No data found');
+        }
+
+        await getItemsFromDatabase('calendar', true, { email: data.userId });
+
+        res.status(200).json({ status: 200, message: 'Data saved' });
+    } catch (error: unknown) {
+        console.error('Error:', error);
+    }
 });
 
 app.listen(SERVER_PORT, () => {
