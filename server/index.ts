@@ -6,6 +6,7 @@ import {
     CLIENT_ID,
     CLIENT_SECRET,
     URI,
+    CLIENT_PORT,
 } from "./modules/env";
 import session from "express-session";
 import passport from "passport";
@@ -20,6 +21,7 @@ import {
 import { getItemsFromDatabase, writeToDatabase } from "./modules/mongoDB";
 import encrypts from "./modules/encryption";
 import httpProxy from "http-proxy";
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const proxy = httpProxy.createProxyServer();
 
@@ -140,17 +142,17 @@ app.get(
                     httpOnly: true,
                 });
             } else {
-                user.latestSession = new Date();
+                // user.latestSession = new Date();
 
-                res.cookie("userId", user.userId, {
-                    maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3
-                    httpOnly: true,
-                });
+                // res.cookie("userId", user.userId, {
+                //     maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3
+                //     httpOnly: true,
+                // });
 
-                await writeToDatabase("users", user);
+                // await writeToDatabase("users", user);
             }
 
-            res.redirect("/");
+            res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
         } catch (error: unknown) {
             console.error("Error:", error);
         }
@@ -161,7 +163,7 @@ app.get("/auth/logout", (req, res) => {
     // req.session!.destroy(() => {
     //     res.redirect("/api/");
     // });
-    res.redirect("/");
+    res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
 });
 
 app.get("/login/guest", async (req, res) => {
@@ -188,7 +190,7 @@ app.get("/login/guest", async (req, res) => {
 
         await writeToDatabase("users", oneTimeUser);
 
-        res.redirect("/");
+        res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
     } catch (error: unknown) {
         console.error("Error:", error);
     }
@@ -233,10 +235,19 @@ app.post("/credentials/logout", async (req, res) => {
     }
 });
 
-// // Proxy (to the client, on port 5173)
-// app.all("/client/*", (req, res) => {
-//     proxy.web(req, res, { target: "http://localhost:5173" });
-// });
+// Proxy (to the client, on port 5173)
+const proxyOptions = {
+    target: `http://${APP_HOSTNAME}:${CLIENT_PORT}`,
+    changeOrigin: true,
+    ws: true, // Enable WebSocket proxying
+  };
+  
+  // Create the proxy middleware
+  const proxyVar = createProxyMiddleware(proxyOptions);
+  
+  // Use the proxy for all routes
+  app.use('/', proxyVar);
+  
 
 app.listen(SERVER_PORT, () => {
     console.log(`Server is running at http://${APP_HOSTNAME}:${SERVER_PORT}`);
