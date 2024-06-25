@@ -15,7 +15,7 @@ const LogoutPage: React.FC = (): React.JSX.Element => {
             })
         }
 
-        const response = await fetch("/logout", jsonData);
+        const response = await fetch("/api/credentials/logout", jsonData);
         const data = await response.json();
 
         if (data.error) {

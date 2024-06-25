@@ -1,8 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes as Pathhub, Route as Path, Navigate as Redirect } from 'react-router-dom'
-import LoginPage from './pages/credentials/login';
-import LogoutPage from './pages/credentials/logout';
-import HomePage from './pages/main/homepage';
+import LoginPage from './pages/credentials/login.tsx';
+import LogoutPage from './pages/credentials/logout.tsx';
+import HomePage from './pages/main/homepage.tsx';
+
+// JS
+import './setupProxy.cjs';
 
 // SCSS
 import './assets/scss/global.scss';

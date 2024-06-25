@@ -13,7 +13,6 @@ import GoogleStrategy from "passport-google-oauth20";
 import connectMongoDBSession from "connect-mongodb-session";
 import cors from "cors";
 import dotenv from "dotenv";
-import "../src/setupProxy";
 import {
     generateRandomNumber,
     permanentEncryptPassword,
@@ -90,6 +89,10 @@ passport.use(
         }
     )
 );
+
+app.get("/", (req, res) => {
+    res.send("Server is running");
+});
 
 app.get(
     "/auth/google",
