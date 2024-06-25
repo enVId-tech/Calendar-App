@@ -20,6 +20,7 @@ import {
 import { getItemsFromDatabase, writeToDatabase } from "./modules/mongoDB";
 import encrypts from "./modules/encryption";
 import httpProxy from "http-proxy";
+import request from "request";
 
 const proxy = httpProxy.createProxyServer();
 
@@ -27,8 +28,14 @@ const MongoDBStore = connectMongoDBSession(session);
 
 const app: Express = express();
 
-app.use("/api", (req, res) => {
-    proxy.web(req, res, { target: "http://localhost:3001" });
+request({
+    url: 'http://localhost:5173',
+    method: 'GET',
+    proxy: 'http://localhost:3001'
+}, (error, response, body) => {
+    if (!error && response.statusCode === 200) {
+        console.log(body);
+    }
 });
 
 app.use(express.json());
@@ -90,10 +97,6 @@ passport.use(
     )
 );
 
-app.get("/", (req, res) => {
-    res.send("Server is running");
-});
-
 app.get(
     "/auth/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
@@ -122,15 +125,6 @@ app.get(
                 (item) => item.email === userProfile.emails![0].value
             );
 
-            res.cookie("user", userProfile.emails![0].value, {
-                maxAge: req.session!.cookie.maxAge,
-                httpOnly: true,
-            });
-            res.cookie("name", userProfile.displayName, {
-                maxAge: req.session!.cookie.maxAge,
-                httpOnly: true,
-            });
-
             if (!user) {
                 const newUser = {
                     displayName: userProfile.displayName,
@@ -151,12 +145,23 @@ app.get(
 
                 await writeToDatabase("users", newUser);
                 user = newUser;
+
+                res.cookie("userId", newUser.userId, {
+                    maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3
+                    httpOnly: true,
+                });
             } else {
                 user.latestSession = new Date();
 
+                res.cookie("userId", user.userId, {
+                    maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3
+                    httpOnly: true,
+                });
+
                 await writeToDatabase("users", user);
             }
-            res.redirect("http://localhost:5173");
+
+            res.redirect("/");
         } catch (error: unknown) {
             console.error("Error:", error);
         }
@@ -167,6 +172,36 @@ app.get("/auth/logout", (req, res) => {
     req.session!.destroy(() => {
         res.redirect("/");
     });
+});
+
+app.get("/login/guest", async (req, res) => {
+    try {
+        const fileData = JSON.parse(await getItemsFromDatabase("users"));
+
+        if (!fileData) {
+            throw new Error("No data found");
+        }
+
+        const oneTimeUser = {
+            displayName: "Guest",
+            firstName: "Guest",
+            lastName: "Guest",
+            email: "guest@localhost",
+            profilePicture: "https://via.placeholder.com/150",
+            hd: "localhost",
+            calendar: {},
+            userId: await generateRandomNumber(64, "alphanumeric"),
+            session: req.sessionID,
+            prevSession: req.sessionID,
+            latestSession: new Date(),
+        }
+
+        await writeToDatabase("users", oneTimeUser);
+
+        res.redirect("/");
+    } catch (error: unknown) {
+        console.error("Error:", error);
+    }
 });
 
 app.post("/calendar/user/data", async (req, res) => {
