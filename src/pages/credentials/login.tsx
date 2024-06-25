@@ -32,6 +32,18 @@ const LoginPage: React.FC = (): React.JSX.Element => {
         }
     };
 
+    const googleLogin = async (): Promise<void> => {
+        const response = await fetch('http://localhost:3001/auth/google');
+        const data = await response.json();
+
+        if (data.status === 200) {
+            console.log('Login successful!');
+            window.location.href = '/';
+        } else {
+            console.error('Login failed:', data.message);
+        }
+    }
+
     return (
         <section id="login">
             <div id="container">
@@ -45,7 +57,9 @@ const LoginPage: React.FC = (): React.JSX.Element => {
 
                     <hr />
 
-                    <a href='http://localhost:3001/auth/google' className="googlesignin"><span className="fa fa-google" />Register/Sign In with Google</a>
+                    <button onClick={() => googleLogin()}>
+                        <h1 className="fa fa-google">Register/Sign In with Google</h1>
+                    </button>
                 </div>
             </div>
         </section>

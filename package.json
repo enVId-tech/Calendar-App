@@ -41,13 +41,5 @@
     "vite": "^5.3.1"
   },
   "module": "commonjs",
-  "proxy": {
-    "/api": {
-      "target": "http://localhost:3001",
-      "changeOrigin": true,
-      "pathRewrite": {
-        "^/api": ""
-      }
-    }
-  }
+  "proxy": "http://localhost:3001"
 }

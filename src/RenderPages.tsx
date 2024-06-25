@@ -4,9 +4,6 @@ import LoginPage from './pages/credentials/login.tsx';
 import LogoutPage from './pages/credentials/logout.tsx';
 import HomePage from './pages/main/homepage.tsx';
 
-// JS
-import './setupProxy.cjs';
-
 // SCSS
 import './assets/scss/global.scss';
 
