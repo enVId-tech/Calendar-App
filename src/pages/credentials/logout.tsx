@@ -1,22 +1,26 @@
 import React from "react";
 import '../../assets/scss/logout.scss';
 
+interface LogoutData {
+    error: string;
+}
+
 const LogoutPage: React.FC = (): React.JSX.Element => {
-    const logout = async (): Promise<void> => {
-        document.cookie = "token=; path=/";
-        
+    const logout = async (): Promise<void> => {       
         const jsonData = {
             "method": "POST",
             "headers": {
                 "Content-Type": "application/json"
             },
             "body": JSON.stringify({
-                "token": ""
+                "userId": document.cookie.split("=")[1]
             })
         }
 
-        const response = await fetch("/api/credentials/logout", jsonData);
-        const data = await response.json();
+        document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+        const response: Response = await fetch("/api/credentials/logout", jsonData);
+        const data: LogoutData = await response.json();
 
         if (data.error) {
             alert(data.error);
