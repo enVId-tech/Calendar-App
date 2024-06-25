@@ -3,6 +3,7 @@ import '../../assets/scss/homepage.scss';
 import UserData from '../../assets/ts/interfaces';
 import getUserData from '../../assets/ts/getUserData';
 import Sidebar from '../../assets/components/sidebar';
+import CreateCalendar from '../../assets/ts/createCalendar';
 
 const HomePage: React.FC = (): React.JSX.Element => {
     const [data, setData] = React.useState<UserData | null | undefined>();
@@ -24,7 +25,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
             <div id="container">
                 <div id="content">
                     <h1>Welcome, {data?.username}!</h1>
-                    <p>Click on the links above to navigate the website.</p>
+                    <CreateCalendar year={2021} month={11} />
                 </div>
             </div>
         </section>
