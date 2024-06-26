@@ -33,13 +33,13 @@ const Sidebar: React.FC = (): React.JSX.Element => {
 
                 <span className="pageSelector">
                     <a href="/about">
-                        <h1>Chat</h1>
+                        <h1>Calendar</h1>
                     </a>
                 </span>
 
                 <span className="pageSelector">
                     <a href="/slack">
-                        <h1>Slack</h1>
+                        <h1>Events</h1>
                     </a>
                 </span>
 

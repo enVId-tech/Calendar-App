@@ -1,6 +1,7 @@
 import React from 'react';
+import '../scss/calendar.scss';
 
-const CreateCalendar: React.FC = ({year, month}): React.JSX.Element => {
+const CreateCalendar: React.FC = ({ month, year }): CreateCa => {
     const weeks = Array.from({ length: 6 }, (_, i) => i + 1);
     const days = Array.from({ length: 7 }, (_, i) => i + 1);
 
@@ -27,15 +28,14 @@ const CreateCalendar: React.FC = ({year, month}): React.JSX.Element => {
     return (
         <section id="calendar">
             <div id="header">
-                <h1>{year}</h1>
-                <h2>{month}</h2>
+                <h1>{new Date(year, month - 1).toLocaleString('en-US', { month: 'long' })} {year}</h1>
             </div>
             <div id="days">
                 {days.map((day: number) => (
                     <div key={day} className="day">
                         <h3>{getDay(day, month, year)}</h3>
-                        <p>{day}</p>
                     </div>
+
                 ))}
             </div>
             <div id="weeks">
@@ -43,7 +43,7 @@ const CreateCalendar: React.FC = ({year, month}): React.JSX.Element => {
                     <div key={week} className="week">
                         {days.map((day: number) => (
                             <div key={day} className="day">
-                                <p>{day}</p>
+                                <p>{(7 * week) + day - 7}</p>
                             </div>
                         ))}
                     </div>
