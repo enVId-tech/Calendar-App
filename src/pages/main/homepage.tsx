@@ -3,7 +3,7 @@ import '../../assets/scss/homepage.scss';
 import UserData from '../../assets/ts/interfaces';
 import getUserData from '../../assets/ts/getUserData';
 import Sidebar from '../../assets/components/sidebar';
-import SmallCalendar from '../../assets/ts/small-calendar';
+import FormatCalendar from '../../assets/components/format-calendar';
 
 const HomePage: React.FC = (): React.JSX.Element => {
     const [data, setData] = React.useState<UserData | null | undefined>();
@@ -40,7 +40,9 @@ const HomePage: React.FC = (): React.JSX.Element => {
 
                     <div id="calendar">
                         <h2>Calendar</h2>
-                        <SmallCalendar />
+                        <div id="calendar-container">
+                            <FormatCalendar />
+                        </div>
                     </div>
                 </div>
             </div>
