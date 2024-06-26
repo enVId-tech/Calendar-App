@@ -1,9 +1,10 @@
 #calendar {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    margin-top: 2vh;
+    width: 85vw;
+
     #header {
         display: flex;
         flex-direction: row;

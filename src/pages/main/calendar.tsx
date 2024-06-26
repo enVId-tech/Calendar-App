@@ -1,5 +1,6 @@
 import React from 'react';
 import '../../assets/scss/calendar.scss';
+import Sidebar from '../../assets/components/sidebar';
 
 const CalendarPage: React.FC = () => {
     const [year, setYear] = React.useState<number>(new Date().getFullYear());
@@ -30,10 +31,11 @@ const CalendarPage: React.FC = () => {
 
     return (
         <section id="calendar">
+            <Sidebar />
             <div id="header">
                 <h1>{new Date(year, month - 1).toLocaleString('en-US', { month: 'long' })} {year}</h1>
             </div>
-            <div id="days">
+            {/* <div id="days">
                 {days.map((day: number) => (
                     <div key={day} className="day">
                         <h3>{getDay(day, month, year)}</h3>
@@ -51,7 +53,7 @@ const CalendarPage: React.FC = () => {
                         ))}
                     </div>
                 ))}
-            </div>
+            </div> */}
         </section>
     )
 }

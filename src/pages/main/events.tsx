@@ -1,5 +1,6 @@
 import React from 'react';
 import '../../assets/scss/events.scss';
+import Sidebar from '../../assets/components/sidebar';
 
 const EventsPage: React.FC = (): React.JSX.Element => {
     const sendEvents = async () => {
@@ -26,8 +27,11 @@ const EventsPage: React.FC = (): React.JSX.Element => {
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }
+    }
+
     return (
         <section id="events">
+            <Sidebar />
             <div id="container">
                 <div id="content">
                     <h1>Events</h1>
