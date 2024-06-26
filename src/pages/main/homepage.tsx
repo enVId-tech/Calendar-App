@@ -6,6 +6,7 @@ import Sidebar from '../../assets/components/sidebar';
 
 const HomePage: React.FC = (): React.JSX.Element => {
     const [data, setData] = React.useState<UserData | null | undefined>();
+    const [motd, setMotd] = React.useState<string>('');
 
     React.useEffect(() => {
         try {
@@ -13,6 +14,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
             getUserData(userId).then((result: UserData | null | undefined) => {
                 setData(result);
             });
+            setMotd('Welcome to the homepage!');
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }
@@ -24,8 +26,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
             <div id="container">
                 <h1>Welcome, {data?.username}!</h1>
                 <div id="motd">
-                        <h2></h2>
-                        <p>{data?.motd}</p>
+                        <p>{motd}</p>
                 </div>
 
                 <div id="content">
@@ -36,9 +37,9 @@ const HomePage: React.FC = (): React.JSX.Element => {
                         </div>
                     </div>
 
-                    <div id="mini-calendar">
+                    <div id="calendar">
                         <h2>Calendar</h2>
-                        <div id="calendar">
+                        <div id="mini-cal">
 
                         </div>
                     </div>
