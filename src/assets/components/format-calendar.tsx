@@ -35,18 +35,43 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
         setDays(newWeeksInCalendar);
     };
 
-    const changeYear = (): void => {
-        
+    const changeYear = (type: string): void => {
+        if (type === 'Previous Year') {
+            setYear(year - 1);
+        } else {
+            setYear(year + 1);
+        }
     }
     
-    const changeMonth = (): void => {
-
+    const changeMonth = (type: string): void => {
+        if (type === 'Previous Month') {
+            if (month === 1) {
+                setMonth(12);
+                setYear(year - 1);
+            } else {
+                setMonth(month - 1);
+            }
+        } else {
+            if (month === 12) {
+                setMonth(1);
+                setYear(year + 1);
+            } else {
+                setMonth(month + 1);
+            }
+        }
     }
 
     return (
         <div id="calendar">
-            <button></button>
             <h1>{shortenedDate}</h1>
+            <div id="yearModifiers">
+                <button className="year" onClick={() => changeYear("Previous Year")}>Previous Year</button>
+                <button className="year" onClick={() => changeYear("Next Year")}>Next Year</button>
+            </div>
+            <div id="monthModifers">
+                <button className="month" onClick={() => changeMonth("Previous Month")}>Previous Month</button>
+                <button className="month" onClick={() => changeMonth("Next Month")}>Next Month</button>
+            </div>
             <table>
                 <thead>
                     <tr>

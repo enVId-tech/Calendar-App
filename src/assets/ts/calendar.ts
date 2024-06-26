@@ -1,7 +1,6 @@
 function createCalendar(year: number, month: number): string {
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDay = new Date(year, month - 1, 1).getDay();
-    const lastDay = new Date(year, month - 1, daysInMonth).getDay();
 
     const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -15,6 +14,7 @@ function createCalendar(year: number, month: number): string {
 
     for (let i = 0; i < 6; i++) {
         let week = '';
+
         for (let j = 0; j < 7; j++) {
             if (i === 0 && j < firstDay) {
                 week += prevMonthDays.toString().padStart(3) + ' ';
