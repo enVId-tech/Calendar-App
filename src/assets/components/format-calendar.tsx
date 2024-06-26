@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import '../../assets/scss/calendar.scss';
+import '../../assets/scss/format-calendar.scss';
 import createCalendar from '../ts/calendar.ts';
 
 const FormatCalendar: React.FC = (): React.JSX.Element => {
@@ -62,13 +62,13 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
     }
 
     return (
-        <div id="calendar">
+        <div id="mini-calendar">
             <h1>{shortenedDate}</h1>
             <div id="yearModifiers">
                 <button className="year" onClick={() => changeYear("Previous Year")}>Previous Year</button>
                 <button className="year" onClick={() => changeYear("Next Year")}>Next Year</button>
             </div>
-            <div id="monthModifers">
+            <div id="monthModifiers">
                 <button className="month" onClick={() => changeMonth("Previous Month")}>Previous Month</button>
                 <button className="month" onClick={() => changeMonth("Next Month")}>Next Month</button>
             </div>
