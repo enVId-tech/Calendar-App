@@ -14,15 +14,15 @@ const client: MongoClient = new MongoClient(process.env.MONGODB_URI, {});
  * @returns void
  * @throws Error if an error occurs
  */
-async function connectToDatabase(log?: boolean): Promise<void> {
+async function connectToDatabase(log?: boolean): Promise<boolean> {
   try {
     await client.connect();
 
     if (log) {
       console.log("Connected to MongoDB");
     }
-    
-    return;
+
+    return true;
   } catch (error: unknown) {
     console.error(`Error connecting to MongoDB: ${error}`);
     throw new Error(error as string);
@@ -36,7 +36,7 @@ async function connectToDatabase(log?: boolean): Promise<void> {
  * @returns void
  * @throws Error if an error occurs
  */
-async function disconnectFromDatabase(log?: boolean): Promise<void> {
+async function disconnectFromDatabase(log?: boolean): Promise<boolean> {
   try {
     await client.close();
 
@@ -44,7 +44,7 @@ async function disconnectFromDatabase(log?: boolean): Promise<void> {
       console.log("Disconnected from MongoDB");
     }
 
-    return;
+    return true;
   } catch (error: unknown) {
     console.error(`Error disconnecting from MongoDB: ${error}`);
     throw new Error(error as string);
@@ -67,7 +67,10 @@ async function writeToDatabase(
   log?: boolean
 ): Promise<[object, boolean]> {
   try {
-    await connectToDatabase(log);
+    if (!await connectToDatabase(log)) {
+      throw new Error("Error connecting to database");
+    }
+
     const database: Db = client.db(CLIENT_DB);
     const collection: Collection<Db> = database.collection(collectionName);
 
@@ -83,7 +86,9 @@ async function writeToDatabase(
       boolInsert = false;
     }
 
-    await disconnectFromDatabase(log);
+    if (!await disconnectFromDatabase(log)) {
+      throw new Error("Error disconnecting from database");
+    }
 
     return [result.insertedId, boolInsert];
   } catch (error: unknown) {
@@ -106,7 +111,9 @@ async function modifyInDatabase(
   log?: boolean
 ): Promise<number> {
   try {
-    await connectToDatabase(log);
+    if (!await connectToDatabase(log)) {
+      throw new Error("Error connecting to database");
+    }
 
     const database: Db = client.db(CLIENT_DB);
     const collection: Collection<Db> = database.collection(collectionName);
@@ -116,7 +123,7 @@ async function modifyInDatabase(
     if (typeof filter === "string") {
       filter = { _id: filter };
     }
-    
+
     const result: UpdateResult = await collection.updateOne(filter, updateData);
 
     if (log && result.modifiedCount > 0) {
@@ -127,7 +134,9 @@ async function modifyInDatabase(
       console.error("\x1b[31m", "Error modifying document");
     }
 
-    await disconnectFromDatabase(log);
+    if (!await disconnectFromDatabase(log)) {
+      throw new Error("Error disconnecting from database");
+    }
 
     return result.modifiedCount;
   } catch (error: unknown) {
@@ -151,7 +160,9 @@ async function deleteFromDatabase(
   log?: boolean
 ): Promise<number> {
   try {
-    await connectToDatabase(log);
+    if (!await connectToDatabase(log)) {
+      throw new Error("Error connecting to database");
+    }
 
     const database: Db = client.db(CLIENT_DB);
     const collection: Collection<Document> = database.collection(collectionName);
@@ -165,14 +176,16 @@ async function deleteFromDatabase(
         console.log("\x1b[32m", "Deleted", result.deletedCount, "document(s)");
       }
 
-      await disconnectFromDatabase(log);
+      if (!await disconnectFromDatabase(log)) {
+        throw new Error("Error disconnecting from database");
+      }
 
       return result.deletedCount;
     } else if (type === 2 || type === "many") {
       const result: DeleteResult = await collection.deleteMany(filter);
 
       if (log && result.deletedCount === 0) {
-        console.log("\x1b[32m","No documents deleted");
+        console.log("\x1b[32m", "No documents deleted");
       } else if (log && result.deletedCount > 0) {
         console.log("\x1b[32m", "Deleted", result.deletedCount, "document(s)");
       }
@@ -184,7 +197,9 @@ async function deleteFromDatabase(
       console.error("\x1b[31m", "Invalid delete type");
     }
 
-    await disconnectFromDatabase(log);
+    if (!await disconnectFromDatabase(log)) {
+      throw new Error("Error disconnecting from database");
+    }
 
     // Add a default return value for any other cases
     return 0;
@@ -205,10 +220,12 @@ async function deleteFromDatabase(
 async function getItemsFromDatabase(
   collectionName: string,
   log?: boolean,
-  dataId?: string 
+  dataId?: string
 ): Promise<string> {
   try {
-    await connectToDatabase(log);
+    if (!await connectToDatabase(log)) {
+      throw new Error("Error connecting to database");
+    }
 
     const database: Db = client.db(CLIENT_DB);
     const collection: Collection<Db> = database.collection(collectionName);
@@ -222,8 +239,10 @@ async function getItemsFromDatabase(
       items = await collection.find({}).toArray();
     }
 
-    await disconnectFromDatabase(log);
-
+    if (!await disconnectFromDatabase(log)) {
+      throw new Error("Error disconnecting from database");
+    }
+    
     return JSON.stringify(items);
   } catch (error: unknown) {
     console.error("\x1b[31m", `Error getting items from database:, ${error}`);

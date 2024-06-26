@@ -22,18 +22,20 @@ const HomePage: React.FC = (): React.JSX.Element => {
         <section id="home">
             <Sidebar />
             <div id="container">
-                <div id="content">
-                    <h1>Welcome, {data?.username}!</h1>
-                    <div id="motd">
+                <h1>Welcome, {data?.username}!</h1>
+                <div id="motd">
                         <h2></h2>
                         <p>{data?.motd}</p>
-                    </div>
+                </div>
+
+                <div id="content">
                     <div id="events">
                         <h2>Upcoming Events</h2>
                         <div id="event-list">
 
                         </div>
                     </div>
+
                     <div id="mini-calendar">
                         <h2>Calendar</h2>
                         <div id="calendar">
