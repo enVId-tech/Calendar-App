@@ -16,6 +16,8 @@
         list-style: none;
         font-size: 1.5rem;
         text-align: center;
+        width: 85vw;
+        height: 100vh;
 
         #content {
             h1 {
@@ -30,32 +32,29 @@
         #eventsLists {
             display: flex;
             flex-direction: row;
-            justify-content: center;
+            justify-content: space-around;
             align-items: center;
             margin: 0;
             padding: 0;
-            list-style: none;
-            font-size: 1.5rem;
+            width: 85vw;
 
-            #eventList {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                margin: 0;
-                padding: 0;
+            #left {
+                #eventList {
+                    font-size: 3vw;
+                }
 
-                #event {
+                #eventListContent {
                     display: flex;
-                    flex-direction: row;
+                    flex-direction: column;
                     justify-content: center;
                     align-items: center;
                     margin: 0;
                     padding: 0;
                     list-style: none;
                     font-size: 1.5rem;
+                    text-align: center;
 
-                    #eventDetails {
+                    .event {
                         display: flex;
                         flex-direction: column;
                         justify-content: center;
@@ -64,60 +63,78 @@
                         padding: 0;
                         list-style: none;
                         font-size: 1.5rem;
+                        text-align: center;
+                        width: 17.5vw;
+                        height: 20vh;
+                        background-color: rgb(150, 150, 150);
+                        border-radius: 20px;
+                        margin: 0.5rem;
+                        padding: 0.5rem;
 
-                        #eventTitle {
+                        h1 {
                             font-size: 2vw;
                             margin: 0;
                             padding: 0;
                         }
 
-                        #eventDate {
+                        p {
                             font-size: 1.5vw;
                             margin: 0;
                             padding: 0;
                         }
-
-                        #eventTime {
-                            font-size: 1.5vw;
-                            margin: 0;
-                            padding: 0;
-                        }
-
-                        #eventLocation {
-                            font-size: 1.5vw;
-                            margin: 0;
-                            padding: 0;
-                        }
-
-                        #eventDescription {
-                            font-size: 1.5vw;
-                            margin: 0;
-                            padding: 0;
-                        }
-                    }
-
-                    #eventButtons {
-                        display: flex;
-                        flex-direction: row;
-                        justify-content: center;
-                        align-items: center;
-                        margin: 0;
-                        padding: 0;
-                        list-style: none;
-                        font-size: 1.5rem;
 
                         button {
                             background-color: rgb(150, 150, 150);
                             border: none;
                             cursor: pointer;
                             font-size: 1.5rem;
-                            margin: 0 0.5rem;
+                            margin: 0.5rem;
                             padding: 0.5rem;
                             border-radius: 20px;
 
                             &:hover {
                                 background-color: rgb(100, 100, 100);
                             }
+                        }
+                    }
+                }
+            }
+
+            #right {
+                #eventCreate {
+                    font-size: 3vw;
+                }
+
+                form {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 0;
+                    padding: 0;
+                    list-style: none;
+                    font-size: 1.5rem;
+                    text-align: center;
+
+                    input {
+                        font-size: 1.5rem;
+                        margin: 0.5rem;
+                        padding: 0.5rem;
+                        border-radius: 20px;
+                        border: none;
+                    }
+
+                    button {
+                        background-color: rgb(150, 150, 150);
+                        border: none;
+                        cursor: pointer;
+                        font-size: 1.5rem;
+                        margin: 0.5rem;
+                        padding: 0.5rem;
+                        border-radius: 20px;
+
+                        &:hover {
+                            background-color: rgb(100, 100, 100);
                         }
                     }
                 }
