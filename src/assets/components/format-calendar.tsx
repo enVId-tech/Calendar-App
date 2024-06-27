@@ -40,7 +40,7 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
             setYear(year + 1);
         }
     }
-    
+
     const changeMonth = (type: string): void => {
         if (type === 'Previous Month') {
             if (month === 1) {
@@ -62,32 +62,34 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
     return (
         <div id="mini-calendar">
             <h1>{shortenedDate}</h1>
-            <div id="yearModifiers">
-                <button className="year" onClick={() => changeYear("Previous Year")}>Previous Year</button>
-                <button className="year" onClick={() => changeYear("Next Year")}>Next Year</button>
-            </div>
-            <div id="monthModifiers">
-                <button className="month" onClick={() => changeMonth("Previous Month")}>Previous Month</button>
-                <button className="month" onClick={() => changeMonth("Next Month")}>Next Month</button>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        {daysOfWeek.map((day: string, index: number) => (
-                            <th key={index}>{day}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {days.map((week: number[] | string[], index: number) => (
-                        <tr key={index}>
-                            {week.map((day: number | string, index: number) => (
-                                <td key={index}>{day}</td>
+            <div id="mainCalendar">
+                <div id="yearModifiers">
+                    <button className="year" onClick={() => changeYear("Previous Year")}>Previous Year</button>
+                    <button className="year" onClick={() => changeYear("Next Year")}>Next Year</button>
+                </div>
+                <div id="monthModifiers">
+                    <button className="month" onClick={() => changeMonth("Previous Month")}>Previous Month</button>
+                    <button className="month" onClick={() => changeMonth("Next Month")}>Next Month</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            {daysOfWeek.map((day: string, index: number) => (
+                                <th key={index}>{day}</th>
                             ))}
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {days.map((week: number[] | string[], index: number) => (
+                            <tr key={index}>
+                                {week.map((day: number | string, index: number) => (
+                                    <td key={index}>{day}</td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }
