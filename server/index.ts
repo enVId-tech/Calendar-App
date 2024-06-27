@@ -126,7 +126,6 @@ app.get(
                     email: userProfile.emails![0].value,
                     profilePicture: userProfile.photos![0].value,
                     hd: userProfile._json.hd,
-                    calendar: {},
                     userId: await generateRandomNumber(64, "alphanumeric"),
                     session: req.sessionID,
                     prevSession: req.sessionID,
@@ -141,7 +140,6 @@ app.get(
                     httpOnly: true,
                 });
             } else {
-
                 user.latestSession = new Date();
 
                 delete user._id;
@@ -180,21 +178,12 @@ app.get("/login/guest", async (req, res) => {
             throw new Error("No data found");
         }
 
-        const oneTimeUser = {
-            displayName: "Guest",
-            firstName: "Guest",
-            lastName: "Guest",
-            email: "guest@localhost",
-            profilePicture: "https://via.placeholder.com/150",
-            hd: "localhost",
-            calendar: {},
-            userId: await generateRandomNumber(64, "alphanumeric"),
-            session: req.sessionID,
-            prevSession: req.sessionID,
-            latestSession: new Date(),
-        }
+        const userId = await generateRandomNumber(64, "alphanumeric");
 
-        await writeToDatabase("users", oneTimeUser);
+        res.cookie("userId", userId, {
+            maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
+            httpOnly: true,
+        });
 
         res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
     } catch (error: unknown) {
@@ -246,9 +235,22 @@ app.post("/post/events", async (req, res) => {
             throw new Error("No data found");
         }
 
-        await getItemsFromDatabase("users", true, data.userId);
+        const fileData = JSON.parse(await getItemsFromDatabase("events", true, data.userId));
 
-        res.status(200).json({ status: 200, message: "Data saved" });
+        if (!fileData) {
+            const newEvents = {
+                userId: data.userId,
+                events: data.events,
+            };
+
+            await writeToDatabase("events", newEvents);
+        } else {
+            fileData.events = data.events;
+
+            await modifyInDatabase({ userId: data.userId }, fileData, "events");
+        }
+
+        res.status(200).json({ status: 200, message: "Events saved" });
     } catch (error: unknown) {
         console.error("Error:", error);
     }
@@ -262,7 +264,12 @@ app.post("/post/delete", async (req, res) => {
             throw new Error("No data found");
         }
 
-        await deleteFromDatabase({ userId: data.userId }, "users", "one", );
+        const deleted = await deleteFromDatabase({ userId: data.userId }, "users", "one", );
+
+        if (!deleted) {
+            res.status(404).json({ status: 404, message: "No data found" })
+            throw new Error("No data found or error occurred");
+        }
 
         res.status(200).json({ status: 200, message: "Data deleted" });
     } catch (error: unknown) {
@@ -278,7 +285,7 @@ app.get("/get/events", async (req, res) => {
             throw new Error("No data found");
         }
 
-        const fileData = JSON.parse(await getItemsFromDatabase("users", true, data.userId));
+        const fileData = JSON.parse(await getItemsFromDatabase("events", true, data.userId));
 
         if (!fileData) {
             throw new Error("No data found");
