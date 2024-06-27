@@ -18,7 +18,7 @@ import {
     generateRandomNumber,
     permanentEncryptPassword,
 } from "./modules/encryption";
-import { getItemsFromDatabase, modifyInDatabase, writeToDatabase } from "./modules/mongoDB";
+import { deleteFromDatabase, getItemsFromDatabase, modifyInDatabase, writeToDatabase } from "./modules/mongoDB";
 import encrypts from "./modules/encryption";
 import httpProxy from "http-proxy";
 import { createProxyMiddleware } from 'http-proxy-middleware';
@@ -249,6 +249,22 @@ app.post("/post/events", async (req, res) => {
         await getItemsFromDatabase("users", true, data.userId);
 
         res.status(200).json({ status: 200, message: "Data saved" });
+    } catch (error: unknown) {
+        console.error("Error:", error);
+    }
+});
+
+app.post("/post/delete", async (req, res) => {
+    try {
+        const data = req.body;
+
+        if (!data) {
+            throw new Error("No data found");
+        }
+
+        await deleteFromDatabase({ userId: data.userId }, "users", "one", );
+
+        res.status(200).json({ status: 200, message: "Data deleted" });
     } catch (error: unknown) {
         console.error("Error:", error);
     }
