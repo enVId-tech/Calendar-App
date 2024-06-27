@@ -30,8 +30,6 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
 
         setDays(newWeeksInCalendar);
 
-        console.log(newWeeksInCalendar);
-
         setDays(newWeeksInCalendar);
     };
 

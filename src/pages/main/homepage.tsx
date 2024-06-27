@@ -39,10 +39,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
                     </div>
 
                     <div id="calendar">
-                        <h2>Calendar</h2>
-                        <div id="calendar-container">
                             <FormatCalendar />
-                        </div>
                     </div>
                 </div>
             </div>

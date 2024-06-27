@@ -1,6 +1,7 @@
 import React from 'react';
 import '../../assets/scss/calendar.scss';
 import Sidebar from '../../assets/components/sidebar.tsx';
+import FormatCalendar from '../../assets/components/format-calendar.tsx';
 
 const CalendarPage: React.FC = () => {
     const [year, setYear] = React.useState<number>(new Date().getFullYear());
@@ -10,6 +11,9 @@ const CalendarPage: React.FC = () => {
     return (
         <section id="calendar">
             <Sidebar />
+            <div id="container">
+                <FormatCalendar />
+            </div>
         </section>
     )
 }

@@ -9,8 +9,9 @@
     font-size: 1.5rem;
 
     h1 {
-        font-size: 2rem;
+        font-size: 4vw;
         margin: 0;
+        margin-bottom: 2vh;
         padding: 0;
         width: 25vw;
     }
@@ -99,7 +100,7 @@
             }
 
             &:hover {
-                background-color: rgb(100, 100, 100);
+                background-color: rgb(131, 131, 131);
                 color: white;
             }
         }
