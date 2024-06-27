@@ -17,12 +17,16 @@ const Sidebar: React.FC = (): React.JSX.Element => {
         });
     }, []);
 
+    const account = (): void => {
+        window.location.href = '/account';
+    }
+
     return (
         <div id="sidebar">
             <div id="profile">
                 <img src="https://via.placeholder.com/150" alt="Profile" />
                 <h2>Logged in as <br/>Erick Tran</h2>
-                <button>Account</button>
+                <button onClick={() => account()}>Account</button>
             </div>
             <div id="pages">
                 <span className="pageSelector">
