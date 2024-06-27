@@ -16,7 +16,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                 })
             }
 
-            const response = await fetch('/api/get/events', dataJson);
+            const response = await fetch('/api/post/events', dataJson);
             const data = await response.json();
 
             if (data.error) {
@@ -31,23 +31,13 @@ const EventsPage: React.FC = (): React.JSX.Element => {
 
     const getEvents = () => {
         try {
-            const dataJson = {
-                "method": "POST",
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": JSON.stringify({
-                    "userId": document.cookie.split("=")[1]
-                })
-            }
-
-            fetch('/api/get/events', dataJson)
+            fetch('/api/get/events')
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) {
                         console.error(data.error);
                     } else {
-                        console.log(data.message);
+                        console.log(data);
                     }
                 }
             );

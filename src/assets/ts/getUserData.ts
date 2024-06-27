@@ -11,7 +11,7 @@ async function getUserData(dataId: string): Promise<UserData | null | undefined>
                 "dataId": dataId
             })
         }
-        const response: Response = await fetch('/api/get/user', dataJson);
+        const response: Response = await fetch('/api/post/user', dataJson);
 
         const result: UserData | null | undefined = await response.json();
 

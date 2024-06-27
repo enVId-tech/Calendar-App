@@ -22,7 +22,6 @@ import { getItemsFromDatabase, modifyInDatabase, writeToDatabase } from "./modul
 import encrypts from "./modules/encryption";
 import httpProxy from "http-proxy";
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import UserID from "./modules/interfaces";
 
 const proxy = httpProxy.createProxyServer();
 
@@ -219,15 +218,51 @@ app.post("/calendar/user/data", async (req, res) => {
     }
 });
 
-app.post("/get/user", async (req, res) => {
+app.post("/post/user", async (req, res) => {
     try {
-        const data: UserID = req.body;
+        const data = req.body;
 
         if (!data) {
             throw new Error("No data found");
         }
 
         const fileData = JSON.parse(await getItemsFromDatabase("users", true, data.dataId));
+
+        if (!fileData) {
+            throw new Error("No data found");
+        }
+
+        res.status(200).json(fileData);
+    } catch (error: unknown) {
+        console.error("Error:", error);
+    }
+});
+
+app.post("/post/events", async (req, res) => {
+    try {
+        const data = req.body;
+
+        if (!data) {
+            throw new Error("No data found");
+        }
+
+        await getItemsFromDatabase("users", true, data.userId);
+
+        res.status(200).json({ status: 200, message: "Data saved" });
+    } catch (error: unknown) {
+        console.error("Error:", error);
+    }
+});
+
+app.get("/get/events", async (req, res) => {
+    try {
+        const data = req.body;
+
+        if (!data) {
+            throw new Error("No data found");
+        }
+
+        const fileData = JSON.parse(await getItemsFromDatabase("users", true, data.userId));
 
         if (!fileData) {
             throw new Error("No data found");
