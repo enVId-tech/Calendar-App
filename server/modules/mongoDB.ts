@@ -118,6 +118,9 @@ class MongoDBClient {
     filter: Filter<T> = {}
   ): Promise<WithId<T>[]> {
     const collection = this.getCollection<T>(collectionName);
+    if (Object.keys(filter).length === 0) {
+      return collection.find().toArray();
+    }
     return collection.find(filter).toArray();
   }
 }
@@ -175,9 +178,15 @@ async function writeToDatabase<T extends Document>(
   log?: boolean
 ): Promise<[string, boolean]> {
   try {
-    await connectToDatabase(log);
+    const connected: boolean = await connectToDatabase(log);
+    if (!connected) {
+      throw new Error("Failed to connect to database");
+    }
     const result = await mongoDBClient.writeToDatabase(collectionName, data);
-    await disconnectFromDatabase(log);
+    const disconnected: boolean = await disconnectFromDatabase(log);
+    if (!disconnected) {
+      throw new Error("Failed to disconnect from database");
+    }
     return result;
   } catch (error) {
     console.error("Error writing to database:", error);
@@ -201,9 +210,15 @@ async function modifyInDatabase<T extends Document>(
   log?: boolean
 ): Promise<number> {
   try {
-    await connectToDatabase(log);
+    const connected: boolean = await connectToDatabase(log);
+    if (!connected) {
+      throw new Error("Failed to connect to database");
+    }
     const result = await mongoDBClient.modifyInDatabase(filter, update, collectionName);
-    await disconnectFromDatabase(log);
+    const disconnected: boolean = await disconnectFromDatabase(log);
+    if (!disconnected) {
+      throw new Error("Failed to disconnect from database");
+    }
     return result;
   } catch (error) {
     console.error("Error modifying document:", error);
@@ -227,10 +242,16 @@ async function deleteFromDatabase<T extends Document>(
   log?: boolean
 ): Promise<number> {
   try {
-    await connectToDatabase(log);
+    const connected: boolean = await connectToDatabase(log);
+    if (!connected) {
+      throw new Error("Failed to connect to database");
+    }
     const deleteMany = type === 2 || type === "many";
     const result = await mongoDBClient.deleteFromDatabase(filter, collectionName, deleteMany);
-    await disconnectFromDatabase(log);
+    const disconnected: boolean = await disconnectFromDatabase(log);
+    if (!disconnected) {
+      throw new Error("Failed to disconnect from database");
+    }
     return result;
   } catch (error) {
     console.error("Error deleting document(s):", error);
@@ -252,9 +273,15 @@ async function getItemsFromDatabase<T extends Document>(
   filter: Filter<T> = {}
 ): Promise<string> {
   try {
-    await connectToDatabase(log);
+    const connected: boolean = await connectToDatabase(log);
+    if (!connected) {
+      throw new Error("Failed to connect to database");
+    }
     const items = await mongoDBClient.getItemsFromDatabase(collectionName, filter);
-    await disconnectFromDatabase(log);
+    const disconnected: boolean = await disconnectFromDatabase(log);
+    if (!disconnected) {
+      throw new Error("Failed to disconnect from database");
+    }
     return JSON.stringify(items);
   } catch (error) {
     console.error("Error getting items from database:", error);

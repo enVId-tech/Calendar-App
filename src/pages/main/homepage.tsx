@@ -13,6 +13,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
         try {
             const userId: string | null = document.cookie.split('=')[1];
             getUserData(userId).then((result: UserData | null | undefined) => {
+                console.log(result);
                 setData(result);
             });
             setMotd('Welcome to the homepage!');
