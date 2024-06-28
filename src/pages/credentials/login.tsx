@@ -57,6 +57,20 @@ const LoginPage: React.FC = (): React.JSX.Element => {
         }
     }
 
+    React.useEffect(() => {
+        const checkLogin = async (): Promise<void> => {
+            try {
+                const cookies = document.cookie.split(';');
+
+                console.log(cookies);
+            } catch (error: unknown) {
+                console.error('Error:', error as string);
+            }
+        }
+
+        checkLogin();
+    }, []);
+
     return (
         <section id="login">
             <div id="container">
