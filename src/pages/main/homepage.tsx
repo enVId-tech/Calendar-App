@@ -11,8 +11,8 @@ const HomePage: React.FC = (): React.JSX.Element => {
 
     React.useEffect(() => {
         try {
-            const userId: string | null = document.cookie.split('=')[1];
-            // console.log(userId);
+            const userId: string | null = document.cookie.split(';')[1].split('=')[1];
+            // console.log(document.cookie.split(';')[1].split('=')[1]);
             getUserData(userId).then((result: UserData | null | undefined) => {
                 console.log(result);
                 setData(result);
