@@ -194,7 +194,7 @@ app.post("/calendar/user/data", async (req, res) => {
             throw new Error("No data found");
         }
 
-        await getItemsFromDatabase("calendar", true, { userId: data.userId });
+        await getItemsFromDatabase("calendar", { userId: data.userId });
 
         res.status(200).json({ status: 200, message: "Data saved" });
     } catch (error: unknown) {
@@ -210,7 +210,7 @@ app.post("/post/user", async (req, res) => {
             throw new Error("No data found");
         }
 
-        const fileData = JSON.parse(await getItemsFromDatabase("users", true, { userId: data.userId }));
+        const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: data.userId }));
 
         if (!fileData) {
             throw new Error("No data found");
@@ -230,7 +230,7 @@ app.post("/post/events", async (req, res) => {
             throw new Error("No data found");
         }
 
-        const fileData = JSON.parse(await getItemsFromDatabase("events", true, { userId: data.userId }));
+        const fileData = JSON.parse(await getItemsFromDatabase("events", { userId: data.userId }));
 
         if (!fileData) {
             const newEvents = {
@@ -280,7 +280,7 @@ app.get("/get/events", async (req, res) => {
             throw new Error("No data found");
         }
 
-        const fileData = JSON.parse(await getItemsFromDatabase("events", true, { userId: data.userId }));
+        const fileData = JSON.parse(await getItemsFromDatabase("events", { userId: data.userId }));
 
         if (!fileData) {
             throw new Error("No data found");
@@ -300,7 +300,7 @@ app.post("/credentials/logout", async (req, res) => {
             return res.status(400).json({ status: 400, message: "No data found" });
         }
 
-        await getItemsFromDatabase("users", true, { userId: data.userId });
+        await getItemsFromDatabase("users", { userId: data.userId });
 
         req.session.destroy((err) => {
             if (err) {

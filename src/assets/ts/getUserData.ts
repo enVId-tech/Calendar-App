@@ -2,13 +2,15 @@ import UserData from "./interfaces";
 
 async function getUserData(dataId: string): Promise<UserData | null | undefined> {
     try {
+
+        console.log(dataId)
         const dataJson: object = {
             "method": "POST",
             "headers": {
                 "Content-Type": "application/json"
             },
             "body": JSON.stringify({
-                "dataId": dataId
+                "userId": dataId
             })
         }
         const response: Response = await fetch('/api/post/user', dataJson);
