@@ -226,7 +226,7 @@ async function deleteFromDatabase(
 async function getItemsFromDatabase(
   collectionName: string,
   log?: boolean,
-  dataId?: string
+  dataId?: Filter<WithId<Db>>
 ): Promise<string> {
   try {
     if (!await connectToDatabase(log)) {
@@ -234,15 +234,14 @@ async function getItemsFromDatabase(
     }
 
     const database: Db = client.db(CLIENT_DB);
-    const collection: Collection<Db> = database.collection(collectionName);
-    const projection: object = { _id: 0 };
+    const collection: Collection<WithId<Db>> = database.collection(collectionName);
 
-    let items: WithId<Db> | WithId<Db>[] | null | undefined = undefined;
+    let items: WithId<Db>[] = [];
 
     if (dataId) {
-      items = await collection.findOne({ dataId }, { projection: projection });
+      items = await collection.find(dataId).toArray();
     } else {
-      items = await collection.find({}).toArray();
+      items = await collection.find().toArray();
     }
 
     if (!await disconnectFromDatabase(log)) {
