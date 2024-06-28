@@ -212,8 +212,22 @@ app.post("/post/user", async (req, res) => {
 
         const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: data.userId }));
 
-        if (!fileData) {
+        if (!fileData || fileData.length === 0) {
             throw new Error("No data found");
+        } else if (fileData.length > 1) {
+            throw new Error("Multiple data found");
+        }
+
+        if (fileData[0]._id) {
+            delete fileData[0]._id;
+        }
+
+        if (fileData[0].session) {
+            delete fileData[0].session;
+        }
+
+        if (fileData[0].userId) {
+            delete fileData[0].userId;
         }
 
         res.status(200).json(fileData);

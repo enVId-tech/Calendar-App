@@ -1,6 +1,6 @@
 import React from 'react';
 import '../../assets/scss/homepage.scss';
-import UserData from '../../assets/ts/interfaces';
+import { UserData } from '../../assets/ts/interfaces';
 import getUserData from '../../assets/ts/getUserData';
 import Sidebar from '../../assets/components/sidebar';
 import FormatCalendar from '../../assets/components/format-calendar';
@@ -12,9 +12,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
     React.useEffect(() => {
         try {
             const userId: string | null = document.cookie.split(';')[1].split('=')[1];
-            // console.log(document.cookie.split(';')[1].split('=')[1]);
             getUserData(userId).then((result: UserData | null | undefined) => {
-                console.log(result);
                 setData(result);
             });
             setMotd('Welcome to the homepage!');
@@ -27,7 +25,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
         <section id="home">
             <Sidebar />
             <div id="container">
-                <h1>Welcome, {data?.username}!</h1>
+                <h1>Welcome, {data?.firstName}!</h1>
                 <div id="motd">
                         <p>{motd}</p>
                 </div>
