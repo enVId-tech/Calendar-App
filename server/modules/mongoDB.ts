@@ -9,28 +9,21 @@ class MongoDBClient {
     if (!uri) {
       throw new Error('MongoDB URI is not defined');
     }
-    this.client = new MongoClient(uri);
+    this.client = new MongoClient(uri, {
+      maxPoolSize: 10,
+      minPoolSize: 5,
+      maxIdleTimeMS: 30000
+    });
   }
 
   /**
-   * Connects to the MongoDB database with retry logic.
-   * @param retries The number of connection attempts before giving up.
-   * @throws Error if unable to connect after all retries.
+   * Connects to the MongoDB database.
    */
-  async connect(retries = 3): Promise<void> {
-    for (let i = 0; i < retries; i++) {
-      try {
-        await this.client.connect();
-        this.db = this.client.db(CLIENT_DB);
-        console.log("Connected to MongoDB");
-        return;
-      } catch (error) {
-        console.error(`Error connecting to MongoDB (attempt ${i + 1}/${retries}):`, error);
-        if (i === retries - 1) {
-          throw error;
-        }
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000)); // Exponential backoff
-      }
+  async connect(): Promise<void> {
+    if (!this.db) {
+      await this.client.connect();
+      this.db = this.client.db(CLIENT_DB);
+      console.log("Connected to MongoDB");
     }
   }
 
@@ -118,10 +111,9 @@ class MongoDBClient {
     filter: Filter<T> = {}
   ): Promise<WithId<T>[]> {
     const collection = this.getCollection<T>(collectionName);
-    if (Object.keys(filter).length === 0) {
-      return collection.find().toArray();
-    }
-    return collection.find(filter).toArray();
+    const items = await collection.find(filter as Filter<T>).toArray();
+    console.log(`Found ${items.length} document(s)`);
+    return items;
   }
 }
 
@@ -269,25 +261,36 @@ async function deleteFromDatabase<T extends Document>(
  */
 async function getItemsFromDatabase<T extends Document>(
   collectionName: string,
-  log?: boolean,
   filter: Filter<T> = {}
 ): Promise<string> {
   try {
-    const connected: boolean = await connectToDatabase(log);
-    if (!connected) {
-      throw new Error("Failed to connect to database");
-    }
     const items = await mongoDBClient.getItemsFromDatabase(collectionName, filter);
-    const disconnected: boolean = await disconnectFromDatabase(log);
-    if (!disconnected) {
-      throw new Error("Failed to disconnect from database");
-    }
     return JSON.stringify(items);
   } catch (error) {
-    console.error("Error getting items from database:", error);
+    console.error("Error getting items from database:");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Stack trace:", error.stack);
     throw error;
   }
 }
+
+async function startServer() {
+  try {
+    await mongoDBClient.connect();
+    // Start your Express server here
+  } catch (error) {
+    console.error('Failed to connect to MongoDB:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
+
+process.on('SIGINT', async () => {
+  await mongoDBClient.disconnect();
+  process.exit(0);
+});
 
 const mongoDBFuncs = {
   writeToDatabase,
