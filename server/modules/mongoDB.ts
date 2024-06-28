@@ -11,22 +11,28 @@ const client: MongoClient = new MongoClient(process.env.MONGODB_URI, {});
  * Connects to the MongoDB database
  * 
  * @param {boolean} log (optional) Whether to log the database connection status
+ * @param {number} retries (optional) The number of times to retry connecting to the database
  * @returns void
  * @throws Error if an error occurs
  */
-async function connectToDatabase(log?: boolean): Promise<boolean> {
-  try {
-    await client.connect();
-
-    if (log) {
-      console.log("Connected to MongoDB");
+async function connectToDatabase(log?: boolean, retries = 3): Promise<boolean> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await client.connect();
+      if (log) {
+        console.log("Connected to MongoDB");
+      }
+      return true;
+    } catch (error: unknown) {
+      console.error(`Error connecting to MongoDB (attempt ${i + 1}/${retries}): ${error}`);
+      if (i === retries - 1) {
+        throw new Error(error as string);
+      }
+      // Wait for a bit before retrying
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
-
-    return true;
-  } catch (error: unknown) {
-    console.error(`Error connecting to MongoDB: ${error}`);
-    throw new Error(error as string);
   }
+  return false;
 }
 
 /**
@@ -242,7 +248,7 @@ async function getItemsFromDatabase(
     if (!await disconnectFromDatabase(log)) {
       throw new Error("Error disconnecting from database");
     }
-    
+
     return JSON.stringify(items);
   } catch (error: unknown) {
     console.error("\x1b[31m", `Error getting items from database:, ${error}`);
