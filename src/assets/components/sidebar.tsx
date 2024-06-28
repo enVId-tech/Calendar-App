@@ -4,15 +4,21 @@ import getUserData from '../ts/getUserData';
 import { UserData } from "../ts/interfaces";
 
 const Sidebar: React.FC = (): React.JSX.Element => {
-    const [data, setData] = React.useState<UserData | null | undefined>();
+    const [data, setData] = React.useState<UserData>();
 
     React.useEffect(() => {
         const fetchData = async () => {
             try {
                 const userId: string | null = document.cookie.split(';')[1].split('=')[1];
 
-                const userData = await getUserData(userId);
-                setData(userData);
+                const userData: UserData | undefined = await getUserData(userId);
+
+                if (!userData) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                setData(userData[0]);
             } catch (error: unknown) {
                 console.error('Error:', error as string);
             }
@@ -28,7 +34,7 @@ const Sidebar: React.FC = (): React.JSX.Element => {
     return (
         <div id="sidebar">
             <div id="profile">
-                <img src="https://via.placeholder.com/150" alt="Profile" />
+                <img src={data?.profilePicture ? data?.profilePicture : "https://via.placeholder.com/150"} alt="Profile Picture" />
                 <h2>Logged in as <br/> {data?.firstName}</h2>
                 <button onClick={() => account()}>Account</button>
             </div>

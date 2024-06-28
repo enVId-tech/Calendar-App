@@ -13,7 +13,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
         try {
             const userId: string | null = document.cookie.split(';')[1].split('=')[1];
             getUserData(userId).then((result: UserData | null | undefined) => {
-                setData(result);
+                setData(result[0]);
             });
             console.log(data);
             setMotd('Welcome to the homepage!');
@@ -40,7 +40,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
                     </div>
 
                     <div id="calendar">
-                            <FormatCalendar />
+                        <FormatCalendar />
                     </div>
                 </div>
             </div>
