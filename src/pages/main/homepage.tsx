@@ -6,7 +6,7 @@ import Sidebar from '../../assets/components/sidebar';
 import FormatCalendar from '../../assets/components/format-calendar';
 
 const HomePage: React.FC = (): React.JSX.Element => {
-    const [data, setData] = React.useState<UserData | null | undefined>();
+    const [data, setData] = React.useState<UserData | null | undefined>({});
     const [motd, setMotd] = React.useState<string>('');
 
     React.useEffect(() => {
@@ -15,6 +15,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
             getUserData(userId).then((result: UserData | null | undefined) => {
                 setData(result);
             });
+            console.log(data);
             setMotd('Welcome to the homepage!');
         } catch (error: unknown) {
             console.error('Error:', error as string);

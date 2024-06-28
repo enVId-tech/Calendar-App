@@ -68,8 +68,8 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
                 <div id="other">
                     <h1 id="main">Other</h1>
-                    <button>Logout</button>
-                    <button id="delete">Delete Account</button>
+                    <button onClick={() => logout()}>Logout</button>
+                    <button id="delete" onClick={() => deleteAccount()}>Delete Account</button>
                 </div>
             </div>
         </section>
