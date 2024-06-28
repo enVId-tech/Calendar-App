@@ -210,6 +210,8 @@ app.post("/post/user", async (req, res) => {
             throw new Error("No data found");
         }
 
+        console.log(data);
+
         const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: data.userId }));
 
         if (!fileData || fileData.length === 0) {

@@ -1,20 +1,24 @@
 import React from "react";
 import '../scss/sidebar.scss';
-import getUserData from "../ts/getUserData";
-import UserData from "../ts/interfaces";
+import getUserData from '../ts/getUserData';
+import { UserData } from "../ts/interfaces";
 
 const Sidebar: React.FC = (): React.JSX.Element => {
     const [data, setData] = React.useState<UserData | null | undefined>();
 
     React.useEffect(() => {
-        const userId: string | null = document.cookie.split('=')[1];
-        console.log(userId);
-        // if (!userId) {
-        //     window.location.href = '/login';
-        // }
-        getUserData(userId).then((result: UserData | null | undefined) => {
-            setData(result);
-        });
+        const fetchData = async () => {
+            try {
+                const userId: string | null = document.cookie.split(';')[1].split('=')[1];
+
+                const userData = await getUserData(userId);
+                setData(userData);
+            } catch (error: unknown) {
+                console.error('Error:', error as string);
+            }
+        }
+
+        fetchData();
     }, []);
 
     const account = (): void => {
@@ -25,7 +29,7 @@ const Sidebar: React.FC = (): React.JSX.Element => {
         <div id="sidebar">
             <div id="profile">
                 <img src="https://via.placeholder.com/150" alt="Profile" />
-                <h2>Logged in as <br/>Erick Tran</h2>
+                <h2>Logged in as <br/> {data?.firstName}</h2>
                 <button onClick={() => account()}>Account</button>
             </div>
             <div id="pages">
