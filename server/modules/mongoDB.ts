@@ -110,10 +110,15 @@ class MongoDBClient {
     collectionName: string,
     filter: Filter<T> = {}
   ): Promise<WithId<T>[]> {
-    const collection = this.getCollection<T>(collectionName);
-    const items = await collection.find(filter as Filter<T>).toArray();
-    console.log(`Found ${items.length} document(s)`);
-    return items;
+    try {
+      const collection = this.getCollection<T>(collectionName);
+      const items = await collection.find(filter as Filter<T>).toArray();
+      console.log(`Found ${items.length} document(s)`);
+      return items;
+    } catch (error: unknown) {
+      console.error("Error getting items from MongoDB:", error as string);
+      throw new Error(error as string);
+    }
   }
 }
 
@@ -132,9 +137,9 @@ async function connectToDatabase(log?: boolean): Promise<boolean> {
       console.log("Connected to MongoDB");
     }
     return true;
-  } catch (error) {
-    console.error("Error connecting to MongoDB:", error);
-    return false;
+  } catch (error: unknown) {
+    console.error("Error connecting to MongoDB:", error as string);
+    throw new Error(error as string);
   }
 }
 
@@ -180,9 +185,9 @@ async function writeToDatabase<T extends Document>(
       throw new Error("Failed to disconnect from database");
     }
     return result;
-  } catch (error) {
-    console.error("Error writing to database:", error);
-    throw error;
+  } catch (error: unknown) {
+    console.error("Error writing to MongoDB:", error as string);
+    throw new Error(error as string);
   }
 }
 
@@ -212,9 +217,9 @@ async function modifyInDatabase<T extends Document>(
       throw new Error("Failed to disconnect from database");
     }
     return result;
-  } catch (error) {
-    console.error("Error modifying document:", error);
-    throw error;
+  } catch (error: unknown) {
+    console.error("Error modifying document:", error as string);
+    throw new Error(error as string);
   }
 }
 
@@ -245,9 +250,9 @@ async function deleteFromDatabase<T extends Document>(
       throw new Error("Failed to disconnect from database");
     }
     return result;
-  } catch (error) {
-    console.error("Error deleting document(s):", error);
-    throw error;
+  } catch (error: unknown) {
+    console.error("Error deleting from MongoDB:", error as string);
+    throw new Error(error as string);
   }
 }
 
@@ -271,7 +276,7 @@ async function getItemsFromDatabase<T extends Document>(
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Stack trace:", error.stack);
-    throw error;
+    throw new Error(error as string);
   }
 }
 

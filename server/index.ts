@@ -144,7 +144,7 @@ app.get(
 
             res.cookie("userId", user.userId, {
                 maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
-                httpOnly: true,
+                httpOnly: false,
             });
 
             res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
