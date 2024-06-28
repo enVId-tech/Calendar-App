@@ -1,257 +1,264 @@
-/* eslint-disable no-unused-vars */
-import { Collection, Db, DeleteResult, Filter, InsertOneResult, MongoClient, OptionalId, UpdateResult, WithId } from "mongodb";
+import { Collection, Db, Filter, MongoClient, WithId, Document, OptionalUnlessRequiredId } from "mongodb";
 import { CLIENT_DB } from "./env.ts";
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('MONGODB_URI is not defined in the environment variables');
-}
+class MongoDBClient {
+  private client: MongoClient;
+  private db: Db | null = null;
 
-const client: MongoClient = new MongoClient(process.env.MONGODB_URI, {});
-/**
- * Connects to the MongoDB database
- * 
- * @param {boolean} log (optional) Whether to log the database connection status
- * @param {number} retries (optional) The number of times to retry connecting to the database
- * @returns void
- * @throws Error if an error occurs
- */
-async function connectToDatabase(log?: boolean, retries = 3): Promise<boolean> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      await client.connect();
-      if (log) {
+  constructor(uri: string) {
+    if (!uri) {
+      throw new Error('MongoDB URI is not defined');
+    }
+    this.client = new MongoClient(uri);
+  }
+
+  /**
+   * Connects to the MongoDB database with retry logic.
+   * @param retries The number of connection attempts before giving up.
+   * @throws Error if unable to connect after all retries.
+   */
+  async connect(retries = 3): Promise<void> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        await this.client.connect();
+        this.db = this.client.db(CLIENT_DB);
         console.log("Connected to MongoDB");
+        return;
+      } catch (error) {
+        console.error(`Error connecting to MongoDB (attempt ${i + 1}/${retries}):`, error);
+        if (i === retries - 1) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000)); // Exponential backoff
       }
-      return true;
-    } catch (error: unknown) {
-      console.error(`Error connecting to MongoDB (attempt ${i + 1}/${retries}): ${error}`);
-      if (i === retries - 1) {
-        throw new Error(error as string);
-      }
-      // Wait for a bit before retrying
-      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
-  return false;
+
+  /**
+   * Disconnects from the MongoDB database.
+   */
+  async disconnect(): Promise<void> {
+    if (this.db) {
+      await this.client.close();
+      this.db = null;
+      console.log("Disconnected from MongoDB");
+    }
+  }
+
+  /**
+   * Writes a document to a specified collection in the database.
+   * @param collectionName The name of the collection to write to.
+   * @param data The document to be inserted.
+   * @returns A tuple containing the inserted document's ID and a boolean indicating success.
+   */
+  getCollection<T extends Document>(name: string): Collection<T> {
+    if (!this.db) {
+      throw new Error('Not connected to database');
+    }
+    return this.db.collection<T>(name);
+  }
+
+  async writeToDatabase<T extends Document>(
+    collectionName: string,
+    data: OptionalUnlessRequiredId<T>
+  ): Promise<[string, boolean]> {
+    const collection = this.getCollection<T>(collectionName);
+    const result = await collection.insertOne(data);
+    const inserted = !!result.insertedId;
+    console.log(inserted ? `Inserted document with _id: ${result.insertedId}` : "No document was inserted");
+    return [result.insertedId.toString(), inserted];
+  }
+
+  /**
+   * Modifies a document in a specified collection in the database.
+   * @param filter The filter to identify the document to modify.
+   * @param update The update to apply to the document.
+   * @param collectionName The name of the collection containing the document.
+   * @returns The number of documents modified.
+   */
+  async modifyInDatabase<T extends Document>(
+    filter: Filter<T>,
+    update: Partial<T>,
+    collectionName: string
+  ): Promise<number> {
+    const collection = this.getCollection<T>(collectionName);
+    const result = await collection.updateOne(filter, { $set: update });
+    console.log(`Modified ${result.modifiedCount} document(s)`);
+    return result.modifiedCount;
+  }
+
+  /**
+   * Deletes one or many documents from a specified collection in the database.
+   * @param filter The filter to identify the document(s) to delete.
+   * @param collectionName The name of the collection containing the document(s).
+   * @param deleteMany If true, deletes all matching documents; if false, deletes only the first matching document.
+   * @returns The number of documents deleted.
+   */
+  async deleteFromDatabase<T extends Document>(
+    filter: Filter<T>,
+    collectionName: string,
+    deleteMany: boolean = false
+  ): Promise<number> {
+    const collection = this.getCollection<T>(collectionName);
+    const result = deleteMany
+      ? await collection.deleteMany(filter)
+      : await collection.deleteOne(filter);
+    console.log(`Deleted ${result.deletedCount} document(s)`);
+    return result.deletedCount;
+  }
+
+  /**
+   * Retrieves documents from a specified collection in the database.
+   * @param collectionName The name of the collection to query.
+   * @param filter The filter to apply to the query.
+   * @returns An array of documents matching the filter.
+   */
+  async getItemsFromDatabase<T extends Document>(
+    collectionName: string,
+    filter: Filter<T> = {}
+  ): Promise<WithId<T>[]> {
+    const collection = this.getCollection<T>(collectionName);
+    return collection.find(filter).toArray();
+  }
+}
+
+// Create a singleton instance of the MongoDB client
+const mongoDBClient = new MongoDBClient(process.env.MONGODB_URI!);
+
+/**
+ * Connects to the MongoDB database.
+ * @param log If true, logs the connection status.
+ * @returns A boolean indicating whether the connection was successful.
+ */
+async function connectToDatabase(log?: boolean): Promise<boolean> {
+  try {
+    await mongoDBClient.connect();
+    if (log) {
+      console.log("Connected to MongoDB");
+    }
+    return true;
+  } catch (error) {
+    console.error("Error connecting to MongoDB:", error);
+    return false;
+  }
 }
 
 /**
- * Disconnects from the MongoDB database
- * 
- * @param {boolean} log (optional) Whether to log the database connection status
- * @returns void
- * @throws Error if an error occurs
+ * Disconnects from the MongoDB database.
+ * @param log If true, logs the disconnection status.
+ * @returns A boolean indicating whether the disconnection was successful.
  */
 async function disconnectFromDatabase(log?: boolean): Promise<boolean> {
   try {
-    await client.close();
-
+    await mongoDBClient.disconnect();
     if (log) {
       console.log("Disconnected from MongoDB");
     }
-
     return true;
-  } catch (error: unknown) {
-    console.error(`Error disconnecting from MongoDB: ${error}`);
-    throw new Error(error as string);
+  } catch (error) {
+    console.error("Error disconnecting from MongoDB:", error);
+    return false;
   }
 }
 
 /**
- * Write data to the database collection.
- *
- * @param {string} collectionName Name of the collection to write to
- * @param {object} data Data to be written to the database
- * @param {boolean} log (optional) Whether to log the database connection status
- * @returns The ID of the inserted document
- * @returns Inserted boolean (T/F)
- * @throws CustomError if an error occurs
+ * Writes a document to a specified collection in the database.
+ * @param collectionName The name of the collection to write to.
+ * @param data The document to be inserted.
+ * @param log If true, logs the operation status.
+ * @returns A tuple containing the inserted document's ID and a boolean indicating success.
+ * @throws Error if the operation fails.
  */
-async function writeToDatabase(
+async function writeToDatabase<T extends Document>(
   collectionName: string,
-  data: unknown,
+  data: OptionalUnlessRequiredId<T>,
   log?: boolean
-): Promise<[object, boolean]> {
+): Promise<[string, boolean]> {
   try {
-    if (!await connectToDatabase(log)) {
-      throw new Error("Error connecting to database");
-    }
-
-    const database: Db = client.db(CLIENT_DB);
-    const collection: Collection<Db> = database.collection(collectionName);
-
-    const result: InsertOneResult<Db> = await collection.insertOne(data as OptionalId<Db>);
-
-    let boolInsert: boolean;
-
-    if (result.insertedId) {
-      console.log("Inserted document with _id:", result.insertedId);
-      boolInsert = true;
-    } else {
-      console.log("No document was inserted");
-      boolInsert = false;
-    }
-
-    if (!await disconnectFromDatabase(log)) {
-      throw new Error("Error disconnecting from database");
-    }
-
-    return [result.insertedId, boolInsert];
-  } catch (error: unknown) {
-    console.error(`Error writing to database: ${error}`);
-    throw new Error(error as string);
+    await connectToDatabase(log);
+    const result = await mongoDBClient.writeToDatabase(collectionName, data);
+    await disconnectFromDatabase(log);
+    return result;
+  } catch (error) {
+    console.error("Error writing to database:", error);
+    throw error;
   }
 }
+
 /**
- * @param filter The filter to use when modifying
- * @param {any} update The update object containing the fields to modify
- * @param {string} collectionName The name of the collection to modify
- * @param {boolean} log (optional) Set to true to log modification messages
- * @returns The number of documents modified
- * @throws Error if an error occurs
+ * Modifies a document in a specified collection in the database.
+ * @param filter The filter to identify the document to modify.
+ * @param update The update to apply to the document.
+ * @param collectionName The name of the collection containing the document.
+ * @param log If true, logs the operation status.
+ * @returns The number of documents modified.
+ * @throws Error if the operation fails.
  */
-async function modifyInDatabase(
-  filter: string | object,
-  update: unknown, // Change to a more specific type if possible
+async function modifyInDatabase<T extends Document>(
+  filter: Filter<T>,
+  update: Partial<T>,
   collectionName: string,
   log?: boolean
 ): Promise<number> {
   try {
-    if (!await connectToDatabase(log)) {
-      throw new Error("Error connecting to database");
-    }
-
-    const database: Db = client.db(CLIENT_DB);
-    const collection: Collection<Db> = database.collection(collectionName);
-
-    const updateData: object = { $set: update };
-
-    if (typeof filter === "string") {
-      filter = { _id: filter };
-    }
-
-    const result: UpdateResult = await collection.updateOne(filter, updateData);
-
-    if (log && result.modifiedCount > 0) {
-      console.log("\x1b[32m", "Modified", result.modifiedCount, "document(s)");
-    } else if (log && result.modifiedCount === 0) {
-      console.log("\x1b[32m", "No documents modified");
-    } else {
-      console.error("\x1b[31m", "Error modifying document");
-    }
-
-    if (!await disconnectFromDatabase(log)) {
-      throw new Error("Error disconnecting from database");
-    }
-
-    return result.modifiedCount;
-  } catch (error: unknown) {
-    console.error("\x1b[31m", `Error modifying document:, ${error}`);
-    throw new Error(error as string);
+    await connectToDatabase(log);
+    const result = await mongoDBClient.modifyInDatabase(filter, update, collectionName);
+    await disconnectFromDatabase(log);
+    return result;
+  } catch (error) {
+    console.error("Error modifying document:", error);
+    throw error;
   }
 }
 
 /**
- * @param filter The filter to use when deleting
- * @param {string} collectionName The name of the collection to delete from
- * @param {number} type The type of delete to perform (1 = one, 2 = many)
- * @param {boolean} log (optional) Set to true to log deletion messages
- * @returns The number of documents deleted, or undefined if no documents were deleted
- * @throws Error if an error occurs
+ * Deletes one or many documents from a specified collection in the database.
+ * @param filter The filter to identify the document(s) to delete.
+ * @param collectionName The name of the collection containing the document(s).
+ * @param type Specifies whether to delete one or many documents (1 or "one" for single, 2 or "many" for multiple).
+ * @param log If true, logs the operation status.
+ * @returns The number of documents deleted.
+ * @throws Error if the operation fails.
  */
-async function deleteFromDatabase(
-  filter: Filter<Document> | undefined,
+async function deleteFromDatabase<T extends Document>(
+  filter: Filter<T>,
   collectionName: string,
   type: 1 | 2 | "one" | "many",
   log?: boolean
 ): Promise<number> {
   try {
-    if (!await connectToDatabase(log)) {
-      throw new Error("Error connecting to database");
-    }
-
-    const database: Db = client.db(CLIENT_DB);
-    const collection: Collection<Document> = database.collection(collectionName);
-
-    if (type === 1 || type === "one") {
-      const result: DeleteResult = await collection.deleteOne(filter);
-
-      if (log && result.deletedCount === 0) {
-        console.log("\x1b[32m", "No documents deleted");
-      } else if (log && result.deletedCount > 0) {
-        console.log("\x1b[32m", "Deleted", result.deletedCount, "document(s)");
-      }
-
-      if (!await disconnectFromDatabase(log)) {
-        throw new Error("Error disconnecting from database");
-      }
-
-      return result.deletedCount;
-    } else if (type === 2 || type === "many") {
-      const result: DeleteResult = await collection.deleteMany(filter);
-
-      if (log && result.deletedCount === 0) {
-        console.log("\x1b[32m", "No documents deleted");
-      } else if (log && result.deletedCount > 0) {
-        console.log("\x1b[32m", "Deleted", result.deletedCount, "document(s)");
-      }
-
-      await disconnectFromDatabase(log);
-
-      return result.deletedCount;
-    } else {
-      console.error("\x1b[31m", "Invalid delete type");
-    }
-
-    if (!await disconnectFromDatabase(log)) {
-      throw new Error("Error disconnecting from database");
-    }
-
-    // Add a default return value for any other cases
-    return 0;
-  } catch (error: unknown) {
-    console.error("\x1b[31m", `Error deleting document(s):, ${error}`);
-    throw new Error(error as string);
+    await connectToDatabase(log);
+    const deleteMany = type === 2 || type === "many";
+    const result = await mongoDBClient.deleteFromDatabase(filter, collectionName, deleteMany);
+    await disconnectFromDatabase(log);
+    return result;
+  } catch (error) {
+    console.error("Error deleting document(s):", error);
+    throw error;
   }
 }
 
 /**
- * 
- * @param {string} collectionName The name of the collection to get items from
- * @param {boolean} log (optional) Set to true to log deletion messages
- * @param {string} dataId (optional) The ID of the data to get from the database
- * @returns Returns the items from the database as a JSON string
- * @throws Error if an error occurs
+ * Retrieves documents from a specified collection in the database.
+ * @param collectionName The name of the collection to query.
+ * @param log If true, logs the operation status.
+ * @param filter The filter to apply to the query.
+ * @returns A JSON string representation of the matching documents.
+ * @throws Error if the operation fails.
  */
-async function getItemsFromDatabase(
+async function getItemsFromDatabase<T extends Document>(
   collectionName: string,
   log?: boolean,
-  dataId?: Filter<WithId<Db>>
+  filter: Filter<T> = {}
 ): Promise<string> {
   try {
-    if (!await connectToDatabase(log)) {
-      throw new Error("Error connecting to database");
-    }
-
-    const database: Db = client.db(CLIENT_DB);
-    const collection: Collection<WithId<Db>> = database.collection(collectionName);
-
-    let items: WithId<Db>[] = [];
-
-    if (dataId) {
-      items = await collection.find(dataId).toArray();
-    } else {
-      items = await collection.find().toArray();
-    }
-
-    if (!await disconnectFromDatabase(log)) {
-      throw new Error("Error disconnecting from database");
-    }
-
+    await connectToDatabase(log);
+    const items = await mongoDBClient.getItemsFromDatabase(collectionName, filter);
+    await disconnectFromDatabase(log);
     return JSON.stringify(items);
-  } catch (error: unknown) {
-    console.error("\x1b[31m", `Error getting items from database:, ${error}`);
-    throw new Error(error as string);
+  } catch (error) {
+    console.error("Error getting items from database:", error);
+    throw error;
   }
 }
 
@@ -263,4 +270,4 @@ const mongoDBFuncs = {
 };
 
 export default mongoDBFuncs;
-export { writeToDatabase, modifyInDatabase, getItemsFromDatabase, deleteFromDatabase }
+export { writeToDatabase, modifyInDatabase, getItemsFromDatabase, deleteFromDatabase };
