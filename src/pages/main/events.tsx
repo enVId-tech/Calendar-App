@@ -40,7 +40,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                         console.log(data);
                     }
                 }
-            );
+                );
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }
@@ -61,13 +61,14 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                     <div id="left">
                         <p id="eventList">Event List</p>
                         <div id="eventListContent">
-                            <div className="event">
-                                <h1>Event Name</h1>
-                                <p>Event Date</p>
-                                <p>Event Time</p>
-                                <p>Event Location</p>
-                                <p>Event Description</p>
-                            </div>
+                            <p id="default">No events found</p>
+                            {/* <div className="event">
+                                <h3>Event 1</h3>
+                                <p>Event 1 Description</p>
+                                <p>Event 1 Date</p>
+                                <p>Event 1 Time</p>
+                                <p>Event 1 Location</p>
+                            </div> */}
                         </div>
                     </div>
                     <div id="right">

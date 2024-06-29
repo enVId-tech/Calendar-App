@@ -32,7 +32,8 @@ const HomePage: React.FC = (): React.JSX.Element => {
                     <div id="events">
                         <h2>Upcoming Events</h2>
                         <div id="event-list">
-                            <div className="event">
+                            <p id="default">No events found</p>
+                            {/* <div className="event">
                                 <h3>Event 1</h3>
                                 <p>Event 1 Description</p>
                             </div>
@@ -43,7 +44,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
                             <div className="event">
                                 <h3>Event 3</h3>
                                 <p>Event 3 Description</p>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 

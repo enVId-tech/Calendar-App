@@ -9,7 +9,7 @@
     #container {
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
         margin: 0;
         padding: 0;
@@ -23,7 +23,7 @@
             h1 {
                 font-size: 4vw;
                 margin: 0;
-                margin-bottom: 2vh;
+                margin-top: 4vh;
                 padding: 0;
                 width: 25vw;
             }
@@ -44,6 +44,7 @@
                 }
 
                 #eventListContent {
+                    background-color: rgb(200, 200, 200);
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
@@ -53,6 +54,9 @@
                     list-style: none;
                     font-size: 1.5rem;
                     text-align: center;
+                    width: 25vw;
+                    height: 60vh;
+                    border-radius: 20px;
 
                     .event {
                         display: flex;
@@ -65,20 +69,20 @@
                         font-size: 1.5rem;
                         text-align: center;
                         width: 17.5vw;
-                        height: 20vh;
+                        height: auto;
                         background-color: rgb(150, 150, 150);
                         border-radius: 20px;
                         margin: 0.5rem;
                         padding: 0.5rem;
 
-                        h1 {
+                        h3 {
                             font-size: 2vw;
                             margin: 0;
                             padding: 0;
                         }
 
                         p {
-                            font-size: 1.5vw;
+                            font-size: 1vw;
                             margin: 0;
                             padding: 0;
                         }
