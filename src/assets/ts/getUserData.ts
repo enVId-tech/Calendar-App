@@ -1,6 +1,6 @@
 import { UserData } from "./interfaces";
 
-async function getUserData(dataId: string): Promise<UserData | null | undefined> {
+async function getUserData(dataId: string): Promise<UserData[] | null | undefined> {
     try {
         const dataJson: object = {
             "method": "POST",
@@ -13,7 +13,7 @@ async function getUserData(dataId: string): Promise<UserData | null | undefined>
         }
         const response: Response = await fetch('/api/post/user', dataJson);
 
-        const result: UserData | null | undefined = await response.json();
+        const result: UserData[] | null | undefined = await response.json();
 
         if (!result || result === null) {
             console.error(result);
@@ -26,7 +26,7 @@ async function getUserData(dataId: string): Promise<UserData | null | undefined>
         console.error('Error:', error);
     }
 
-    return
+    return;
 }
 
 export default getUserData;

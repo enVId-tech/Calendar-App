@@ -1,8 +1,29 @@
 import React from 'react';
 import '../../assets/scss/account.scss';
 import Sidebar from '../../assets/components/sidebar.tsx';
+import { UserData } from '../../assets/ts/interfaces.ts';
+import getUserData from '../../assets/ts/getUserData.ts';
 
 const AccountPage: React.FC = (): React.JSX.Element => {
+    const [data, setData] = React.useState<UserData | null | undefined>();
+
+    const getData = async () => {
+        try {
+            const userId: string | null = document.cookie.split(';')[1].split('=')[1];
+
+            const userData: UserData[] | undefined | null = await getUserData(userId);
+
+            if (!userData) {
+                window.location.href = '/login';
+                return;
+            }
+
+            setData(userData[0]);
+        } catch (error: unknown) {
+            console.error('Error:', error as string);
+        }
+    }
+
     const logout = async () => {
         try {
             const dataJson = {
@@ -11,7 +32,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "userId": document.cookie.split("=")[1]
+                    "userId": document.cookie.split(";")[1].split("=")[1]
                 })
             }
 
@@ -36,7 +57,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "userId": document.cookie.split("=")[1]
+                    "userId": document.cookie.split(";")[1].split("=")[1]
                 })
             }
 
@@ -60,7 +81,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
                 <h1>Account</h1>
                 <div id='info'>
                     <h2>Username: Erick Tran</h2>
-                    <h2>Email: thelittlebotengineer@gmail.com</h2>
+                    <h2>Email: </h2>
                     <input type='password' placeholder='Password' />
                     <input type='password' placeholder='Confirm Password' />
                     <button>Update</button>

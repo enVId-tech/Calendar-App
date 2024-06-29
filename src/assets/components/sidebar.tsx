@@ -11,7 +11,7 @@ const Sidebar: React.FC = (): React.JSX.Element => {
             try {
                 const userId: string | null = document.cookie.split(';')[1].split('=')[1];
 
-                const userData: UserData | undefined = await getUserData(userId);
+                const userData: UserData[] | undefined | null = await getUserData(userId);
 
                 if (!userData) {
                     window.location.href = '/login';
