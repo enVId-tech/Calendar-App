@@ -47,20 +47,16 @@ const checkSession = async (req: Request, res: Response, next: NextFunction) => 
             const fileData = JSON.parse(await getItemsFromDatabase("users", { session: sessionId }));
 
             if (fileData && fileData.length === 1) {
-                if (fileData[0].session === sessionId) {
-                    return res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
-                } else {
-                    req.sessionID = sessionId;
-                    req.session.regenerate((err) => {
-                        if (err) {
-                            console.error("Session regeneration error:", err);
-                            return res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
-                        } else {
-                            return res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
-                        }
-                    });
+                return res.status(200).json({ status: 200, message: "Session ID found" });
+            } else if (fileData && fileData.length > 1) {
+                await deleteFromDatabase({ session: sessionId }, "sessions", "many");
+
+                for (const item of fileData) {
+                    item.session = null;
+                    await modifyInDatabase({ email: item.email }, item, "users");
                 }
-                return res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+
+                return res.status(401).json({ status: 401, message: "Overutilized Session ID" });
             }
         }
         next();
@@ -195,9 +191,7 @@ app.get("/login/guest", async (req, res) => {
             throw new Error("No data found");
         }
 
-        const userId = await generateRandomNumber(64, "alphanumeric");
-
-        res.cookie("userId", userId, {
+        res.cookie("userId", "guest", {
             maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
             httpOnly: true,
         });
