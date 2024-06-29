@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import '../../assets/scss/events.scss';
 import Sidebar from '../../assets/components/sidebar';
