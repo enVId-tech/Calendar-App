@@ -3,6 +3,12 @@ import '../../assets/scss/events.scss';
 import Sidebar from '../../assets/components/sidebar';
 
 const EventsPage: React.FC = (): React.JSX.Element => {
+    const eventNameRef = React.useRef<HTMLInputElement>(null);
+    const eventDateRef = React.useRef<HTMLInputElement>(null);
+    const eventTimeRef = React.useRef<HTMLInputElement>(null);
+    const eventLocationRef = React.useRef<HTMLInputElement>(null);
+    const eventDescriptionRef = React.useRef<HTMLInputElement>(null);
+
     const sendEvents = async () => {
         try {
             const dataJson = {
@@ -12,7 +18,13 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                 },
                 "body": JSON.stringify({
                     "userId": document.cookie.split("=")[1],
-                    "events": []
+                    "eventValues": {
+                        "eventName": eventNameRef.current!.value,
+                        "eventDate": eventDateRef.current!.value,
+                        "eventTime": eventTimeRef.current!.value,
+                        "eventLocation": eventLocationRef.current!.value,
+                        "eventDescription": eventDescriptionRef.current!.value
+                    }
                 })
             }
 
@@ -29,18 +41,26 @@ const EventsPage: React.FC = (): React.JSX.Element => {
         }
     }
 
-    const getEvents = () => {
+    const getEvents = async () => {
         try {
-            fetch('/api/get/events')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        console.error(data.error);
-                    } else {
-                        console.log(data);
-                    }
-                }
-                );
+            const dataJson = {
+                "method": "POST",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "userId": document.cookie.split(";")[1].split("=")[1]
+                })
+            }
+
+            const response = await fetch('/api/get/events', dataJson);
+            const data = await response.json();
+
+            if (data.error) {
+                console.error(data.error);
+            } else {
+                console.log(data.message);
+            }
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }
@@ -74,11 +94,11 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                     <div id="right">
                         <p id="eventCreate">Create Event</p>
                         <form id="eventForm">
-                            <input type="text" id="eventName" placeholder="Event Name" />
-                            <input type="text" id="eventDate" placeholder="Event Date" />
-                            <input type="text" id="eventTime" placeholder="Event Time" />
-                            <input type="text" id="eventLocation" placeholder="Event Location" />
-                            <input type="text" id="eventDescription" placeholder="Event Description" />
+                            <input type="text" id="eventName" ref={eventNameRef} placeholder="Event Name" />
+                            <input type="date" id="eventDate" ref={eventDateRef} placeholder="Event Date" />
+                            <input type="time" id="eventTime" ref={eventTimeRef} placeholder="Event Time" />
+                            <input type="search" id="eventLocation" ref={eventLocationRef} placeholder="Event Location" />
+                            <input type="text" id="eventDescription" ref={eventDescriptionRef} placeholder="Event Description" />
                             <button type="button" onClick={() => sendEvents()}>Submit</button>
                         </form>
                     </div>

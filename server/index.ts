@@ -313,7 +313,7 @@ app.post("/post/delete", async (req, res) => {
     }
 });
 
-app.get("/get/events", async (req, res) => {
+app.post("/get/events", async (req, res) => {
     try {
         const data = req.body;
 
@@ -324,10 +324,10 @@ app.get("/get/events", async (req, res) => {
         const fileData = JSON.parse(await getItemsFromDatabase("events", { userId: data.userId }));
 
         if (!fileData) {
-            throw new Error("No data found");
+            res.status(200).json({ status: 200, message: "No events found" });
+        } else {
+            res.status(200).json(fileData);
         }
-
-        res.status(200).json(fileData);
     } catch (error: unknown) {
         console.error("Error:", error);
     }
