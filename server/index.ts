@@ -4,7 +4,6 @@ import {
     SERVER_PORT,
     CLIENT_ID,
     CLIENT_SECRET,
-    URI,
     CLIENT_PORT,
 } from "./modules/env";
 import session from "express-session";
