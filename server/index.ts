@@ -191,7 +191,7 @@ app.get("/login/guest", async (req, res) => {
         }
 
         res.cookie("userId", "guest", {
-            maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
+            maxAge: 1000 * 60 * 60 * 24 * 1, // 1 day
             httpOnly: true,
         });
 

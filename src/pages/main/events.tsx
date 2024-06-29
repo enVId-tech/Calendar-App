@@ -14,6 +14,11 @@ const EventsPage: React.FC = (): React.JSX.Element => {
 
     const sendEvents = async () => {
         try {
+            if (document.cookie.split(";")[1].split("=")[1] === "guest") {
+                alert("You must be logged in to create an event");
+                return;
+            }
+            
             const dataJson = {
                 "method": "POST",
                 "headers": {
@@ -46,6 +51,12 @@ const EventsPage: React.FC = (): React.JSX.Element => {
 
     const getEvents = async () => {
         try {
+            if (document.cookie.split(";")[1].split("=")[1] === "") {
+                window.location.href = '/login';
+                return;
+            } else if (document.cookie.split(";")[1].split("=")[1] === "guest") {
+                return;
+            }
             const dataJson = {
                 "method": "POST",
                 "headers": {
@@ -86,19 +97,21 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                     <div id="left">
                         <p id="eventList">Event List</p>
                         <div id="eventListContent">
-                            <p id="default">No events found</p>
                             {
-                                events.map((event: EventData, index: number) => {
-                                    return (
-                                        <div className="event" key={index}>
-                                            <h3>{event.eventName}</h3>
-                                            <p>{event.eventDescription}</p>
-                                            <p>{event.eventDate}</p>
-                                            <p>{event.eventTime}</p>
-                                            <p>{event.eventLocation}</p>
-                                        </div>
-                                    )
-                                })
+                                events.length === 0 ?
+                                    <p id="default">No events found</p>
+                                    :
+                                    events?.map((event: EventData, index: number) => {
+                                        return (
+                                            <div className="event" key={index}>
+                                                <h3>{event.eventName}</h3>
+                                                <p>{event.eventDescription}</p>
+                                                <p>{event.eventDate}</p>
+                                                <p>{event.eventTime}</p>
+                                                <p>{event.eventLocation}</p>
+                                            </div>
+                                        )
+                                    })
                             }
                         </div>
                     </div>
