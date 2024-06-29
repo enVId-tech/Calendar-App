@@ -60,9 +60,19 @@ const LoginPage: React.FC = (): React.JSX.Element => {
     React.useEffect(() => {
         const checkLogin = async (): Promise<void> => {
             try {
-                const cookies = document.cookie.split(';');
+                const response = await fetch('/api/login', {
+                    method: 'GET',
+                    credentials: 'include',
+                });
 
-                console.log(cookies);
+                const data: LoginData = await response.json();
+
+                if (data.status === 200) {
+                    console.log('Already logged in!');
+                    window.location.href = '/';
+                } else {
+                    console.log('Not logged in.');
+                }
             } catch (error: unknown) {
                 console.error('Error:', error as string);
             }
