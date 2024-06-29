@@ -38,6 +38,38 @@ const SECRET: string = permanentEncryptPassword(
     generateRandomNumber(256, "alphanumeric").toString()
 );
 
+// Middleware to check for session cookie
+const checkSession = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const sessionId = req.sessionID;
+
+        if (sessionId) {
+            const fileData = JSON.parse(await getItemsFromDatabase("users", { session: sessionId }));
+
+            if (fileData && fileData.length === 1) {
+                if (fileData[0].session === sessionId) {
+                    return res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+                } else {
+                    req.sessionID = sessionId;
+                    req.session.regenerate((err) => {
+                        if (err) {
+                            console.error("Session regeneration error:", err);
+                            return res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+                        } else {
+                            return res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+                        }
+                    });
+                }
+                return res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+            }
+        }
+        next();
+    } catch (error) {
+        console.error("Error:", error);
+        next();
+    }
+};
+
 app.use(
     session({
         secret: SECRET,
@@ -121,7 +153,6 @@ app.get(
                     hd: userProfile._json.hd,
                     userId: await generateRandomNumber(64, "alphanumeric"),
                     session: req.sessionID,
-                    prevSession: req.sessionID,
                     latestSession: new Date(),
                 };
 
@@ -177,34 +208,13 @@ app.get("/login/guest", async (req, res) => {
     }
 });
 
-// Middleware to check for session cookie
-const checkSession = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.cookies.userId;
-
-        if (userId) {
-            const fileData = JSON.parse(await getItemsFromDatabase("users", { userId }));
-
-            if (fileData && fileData.length === 1) {
-                req.session.userId = userId;
-                req.session.user = fileData[0];
-                return res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
-            }
-        }
-        next();
-    } catch (error) {
-        console.error("Error:", error);
-        next();
-    }
-};
-
 app.get("/login", checkSession, (req, res) => {
     if (req.sessionID) {
-        console.log(req.sessionID);
+        console.log("Session ID:", req.sessionID);
     } else {
         console.log(req);
     }
-    
+
     res.status(200).send("Login page requested");
 });
 
@@ -339,6 +349,8 @@ app.post("/credentials/logout", async (req, res) => {
         }
 
         await getItemsFromDatabase("users", { userId: data.userId });
+
+        req.cookies = null;
 
         req.session.destroy((err) => {
             if (err) {
