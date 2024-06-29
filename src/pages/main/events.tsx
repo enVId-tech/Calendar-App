@@ -1,6 +1,7 @@
 import React from 'react';
 import '../../assets/scss/events.scss';
 import Sidebar from '../../assets/components/sidebar';
+import { EventData, UserData } from '../../assets/ts/interfaces';
 
 const EventsPage: React.FC = (): React.JSX.Element => {
     const eventNameRef = React.useRef<HTMLInputElement>(null);
@@ -8,6 +9,8 @@ const EventsPage: React.FC = (): React.JSX.Element => {
     const eventTimeRef = React.useRef<HTMLInputElement>(null);
     const eventLocationRef = React.useRef<HTMLInputElement>(null);
     const eventDescriptionRef = React.useRef<HTMLInputElement>(null);
+
+    const [events, setEvents] = React.useState<EventData[]>([]);
 
     const sendEvents = async () => {
         try {
@@ -61,6 +64,8 @@ const EventsPage: React.FC = (): React.JSX.Element => {
             } else {
                 console.log(data.message);
             }
+
+            setEvents(data.message);
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }
@@ -82,13 +87,19 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                         <p id="eventList">Event List</p>
                         <div id="eventListContent">
                             <p id="default">No events found</p>
-                            {/* <div className="event">
-                                <h3>Event 1</h3>
-                                <p>Event 1 Description</p>
-                                <p>Event 1 Date</p>
-                                <p>Event 1 Time</p>
-                                <p>Event 1 Location</p>
-                            </div> */}
+                            {
+                                events.map((event: EventData, index: number) => {
+                                    return (
+                                        <div className="event" key={index}>
+                                            <h3>{event.eventName}</h3>
+                                            <p>{event.eventDescription}</p>
+                                            <p>{event.eventDate}</p>
+                                            <p>{event.eventTime}</p>
+                                            <p>{event.eventLocation}</p>
+                                        </div>
+                                    )
+                                })
+                            }
                         </div>
                     </div>
                     <div id="right">

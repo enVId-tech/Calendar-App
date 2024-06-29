@@ -12,4 +12,12 @@ interface UserData {
     profilePicture: string;
 }
 
-export type { CreateCalendarProps, UserData }
+interface EventData {
+    eventName: string;
+    eventDescription: string;
+    eventLocation: string;
+    eventTime: string;
+    eventDate: string;
+}
+
+export type { CreateCalendarProps, UserData, EventData }
