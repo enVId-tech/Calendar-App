@@ -235,7 +235,7 @@ app.post("/post/user", async (req, res) => {
             throw new Error("No data found");
         }
 
-        console.log(data);
+        console.log(data.userId);
 
         const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: data.userId }));
 

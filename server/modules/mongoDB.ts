@@ -269,6 +269,12 @@ async function getItemsFromDatabase<T extends Document>(
   filter: Filter<T> = {}
 ): Promise<string> {
   try {
+    const connected: boolean = await connectToDatabase();
+
+    if (!connected) {
+      throw new Error("Failed to connect to database");
+    }
+
     const items = await mongoDBClient.getItemsFromDatabase(collectionName, filter);
     return JSON.stringify(items);
   } catch (error) {
