@@ -8,6 +8,9 @@ import getUserData from '../../assets/ts/getUserData.ts';
 const AccountPage: React.FC = (): React.JSX.Element => {
     const [data, setData] = React.useState<UserData | null | undefined>();
 
+    const passwordRef = React.useRef<HTMLInputElement>(null);
+    const confirmPasswordRef = React.useRef<HTMLInputElement>(null);
+
     const getData = async () => {
         try {
             const userId: string | null = document.cookie.split(';')[1].split('=')[1];
@@ -75,16 +78,54 @@ const AccountPage: React.FC = (): React.JSX.Element => {
         }
     }
 
+    const setPassword = async () => {
+        try {
+            const password: string = document.querySelector('input[type="password"]').value;
+            const confirmPassword: string = document.querySelectorAll('input[type="password"]')[1].value;
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+
+            const dataJson = {
+                "method": "POST",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "userId": document.cookie.split(";")[1].split("=")[1],
+                    "password": password
+                })
+            }
+
+            const response = await fetch('/api/post/password', dataJson);
+            const data = await response.json();
+
+            if (data.error) {
+                console.error(data.error);
+            } else {
+                console.log(data.message);
+            }
+        } catch (error: unknown) {
+            console.error('Error:', error as string);
+        }
+    }
+
+    React.useEffect(() => {
+        getData();
+    }, []);
+
     return (
         <section id='account'>
             <Sidebar />
             <div id='container'>
                 <h1>Account</h1>
                 <div id='info'>
-                    <h2>Username: Erick Tran</h2>
-                    <h2>Email: </h2>
-                    <input type='password' placeholder='Password' />
-                    <input type='password' placeholder='Confirm Password' />
+                    <h2>Username: {data?.displayName}</h2>
+                    <h2>Email: {data?.email}</h2>
+                    <input type='password' placeholder='Password' ref={passwordRef} />
+                    <input type='password' placeholder='Confirm Password' ref={confirmPasswordRef} />
                     <button>Update</button>
                 </div>
 

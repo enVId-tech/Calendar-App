@@ -76,7 +76,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
         <section id="home">
             <Sidebar />
             <div id="container">
-                <h1>Welcome, {data?.firstName}!</h1>
+                <h1>Welcome, {data?.displayName}!</h1>
 
                 <div id="content">
                     <div id="events">

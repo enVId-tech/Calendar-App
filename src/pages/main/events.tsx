@@ -89,6 +89,37 @@ const EventsPage: React.FC = (): React.JSX.Element => {
         }
     }
 
+    const deleteEvent = async (eventId: string) => {
+        try {
+            if (document.cookie.split(";")[1].split("=")[1] === "guest") {
+                alert("You must be logged in to delete an event");
+                return;
+            }
+
+            const dataJson = {
+                "method": "DELETE",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "userId": document.cookie.split(";")[1].split("=")[1],
+                    "eventId": eventId
+                })
+            }
+
+            const response = await fetch('/api/delete/events', dataJson);
+            const data = await response.json();
+
+            if (data.error) {
+                console.error(data.error);
+            }
+
+            getEvents();
+        } catch (error: unknown) {
+            console.error('Error:', error as string);
+        }
+    }
+
     React.useEffect(() => {
         getEvents();
     }, []);
