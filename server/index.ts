@@ -23,6 +23,7 @@ import {
     writeToDatabase,
 } from "./modules/mongoDB";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { EventsData } from "./modules/interface";
 
 const MongoDBStore = connectMongoDBSession(session);
 const app: Express = express();
@@ -271,19 +272,21 @@ app.post("/post/events", async (req, res) => {
             throw new Error("No data found");
         }
 
-        const fileData = JSON.parse(await getItemsFromDatabase("events", { userId: data.userId }));
+        const fileData: EventsData = JSON.parse(await getItemsFromDatabase("events", { userId: data.userId }));
 
-        if (!fileData) {
-            const newEvents = {
+        console.log(fileData);
+
+        if (fileData.length === 0) {
+            fileData.events = data.events;
+
+            await modifyInDatabase({ userId: data.userId }, fileData, "events");
+        } else {
+            const newEvents: EventsData = {
                 userId: data.userId,
                 events: data.events,
             };
 
             await writeToDatabase("events", newEvents);
-        } else {
-            fileData.events = data.events;
-
-            await modifyInDatabase({ userId: data.userId }, fileData, "events");
         }
 
         res.status(200).json({ status: 200, message: "Events saved" });

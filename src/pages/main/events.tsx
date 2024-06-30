@@ -99,7 +99,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                         <p id="eventList">Event List</p>
                         <div id="eventListContent">
                             {
-                                events.length === 0 ?
+                                !events?.length ?
                                     <p id="default">No events found</p>
                                     :
                                     events?.map((event: EventData, index: number) => {
