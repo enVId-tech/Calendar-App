@@ -10,6 +10,7 @@ const Sidebar: React.FC = (): React.JSX.Element => {
         const fetchData = async () => {
             try {
                 const userId: string | null = document.cookie.split(';')[1].split('=')[1];
+                console.log(document.cookie.split(';')[1].split('=')[1]);
 
                 const userData: UserData[] | undefined | null = await getUserData(userId);
 

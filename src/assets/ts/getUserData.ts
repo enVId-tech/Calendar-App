@@ -12,7 +12,7 @@ async function getUserData(dataId: string): Promise<UserData[] | null | undefine
             })
         }
         const response: Response = await fetch('/api/post/user', dataJson);
-
+        
         const result: UserData[] | null | undefined = await response.json();
 
         if (!result || result === null) {

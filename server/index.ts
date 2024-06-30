@@ -95,7 +95,7 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(
-    // @ts-expect-error Google Strategy error is a false positive
+    // @ts-expect-error - This is a valid strategy
     new GoogleStrategy(
         {
             clientID: CLIENT_ID,
