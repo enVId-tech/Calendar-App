@@ -10,11 +10,14 @@ const EventsPage: React.FC = (): React.JSX.Element => {
     const eventTimeRef = React.useRef<HTMLInputElement>(null);
     const eventLocationRef = React.useRef<HTMLInputElement>(null);
     const eventDescriptionRef = React.useRef<HTMLInputElement>(null);
+    const eventSubmitRef = React.useRef<HTMLButtonElement>(null);
 
     const [events, setEvents] = React.useState<EventData[]>([]);
 
     const sendEvents = async () => {
         try {
+            eventSubmitRef.current!.disabled = true;
+
             if (document.cookie.split(";")[1].split("=")[1] === "guest") {
                 alert("You must be logged in to create an event");
                 return;
@@ -42,11 +45,13 @@ const EventsPage: React.FC = (): React.JSX.Element => {
 
             if (data.error) {
                 console.error(data.error);
-            } else {
-                console.log(data.message);
             }
+
+            getEvents();
         } catch (error: unknown) {
             console.error('Error:', error as string);
+        } finally {
+            eventSubmitRef.current!.disabled = false;
         }
     }
 
@@ -71,13 +76,14 @@ const EventsPage: React.FC = (): React.JSX.Element => {
             const response = await fetch('/api/get/events', dataJson);
             const data = await response.json();
 
+            console.log(data);
+
             if (data.error) {
                 console.error(data.error);
-            } else {
-                console.log(data.message);
+                return;
             }
 
-            setEvents(data.message);
+            setEvents(data.events);
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }
@@ -124,7 +130,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                             <input type="time" id="eventTime" ref={eventTimeRef} placeholder="Event Time" />
                             <input type="search" id="eventLocation" ref={eventLocationRef} placeholder="Event Location" />
                             <input type="text" id="eventDescription" ref={eventDescriptionRef} placeholder="Event Description" />
-                            <button type="button" onClick={() => sendEvents()}>Submit</button>
+                            <button type="button" onClick={() => sendEvents()} ref={eventSubmitRef}>Submit</button>
                         </form>
                     </div>
                 </div>

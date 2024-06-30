@@ -339,7 +339,9 @@ app.post("/get/events", async (req, res) => {
         if (!fileData) {
             res.status(200).json({ status: 200, message: "No events found" });
         } else {
-            res.status(200).json(fileData);
+            delete fileData[0]._id;
+            delete fileData[0].userId;
+            res.status(200).json(fileData[0]);
         }
     } catch (error: unknown) {
         console.error("Error:", error);
