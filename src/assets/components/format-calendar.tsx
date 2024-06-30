@@ -25,7 +25,7 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
             newWeeksInCalendar.push(week.split(' ').filter((day: string) => day !== ''));
         });
 
-        setShortenedDate(`${newWeeksInCalendar[0][0]} ${newWeeksInCalendar[0][1]}`);
+        setShortenedDate(`${newWeeksInCalendar[0][0]} ${today}, ${newWeeksInCalendar[0][1]}`);
         newWeeksInCalendar.shift();
 
         setDaysOfWeek(newWeeksInCalendar[0]);
@@ -93,12 +93,17 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
                         </tr>
                     </thead>
                     <tbody>
-                        {days.map((week: number[] | string[], index: number) => (
-                            <tr key={index}>
-                                {week.map((day: number | string, index: number) => (
-                                    <td key={index} className={
-                                        Number(day) === today && Number(month) === todayMonth && Number(year) === todayYear ? 'today' : ''
-                                    }>{day}</td>
+                        {days.map((week: number[] | string[], weekIndex: number) => (
+                            <tr key={weekIndex}>
+                                {week.map((day: number | string, dayIndex: number) => (
+                                    <td key={
+                                        dayIndex
+                                    }
+                                        className={
+                                            `${Number(day) === today && Number(month) === todayMonth && Number(year) === todayYear ? 'today' : ''} 
+                                            ${weekIndex <= 1 && Number(day) > 20 || weekIndex >= 4 && Number(day) < 10 ? 'gray' : ''}`
+                                        }
+                                    >{day}</td>
                                 ))}
                             </tr>
                         ))}

@@ -104,6 +104,11 @@
                 color: white;
             }
 
+            &.gray {
+                background-color: rgb(85, 85, 85) !important;
+                color: rgb(46, 46, 46) !important;
+            }
+
         }
     }
 }
