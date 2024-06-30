@@ -9,6 +9,9 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
     const [shortenedDate, setShortenedDate] = React.useState<string>('');
     const [daysOfWeek, setDaysOfWeek] = React.useState<string[]>(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
     const [days, setDays] = React.useState<number[][] | string[][]>([]);
+    const [today, setToday] = React.useState<number>(new Date().getDate());
+    const [todayMonth, setTodayMonth] = React.useState<number>(new Date().getMonth() + 1);
+    const [todayYear, setTodayYear] = React.useState<number>(new Date().getFullYear());
 
     React.useEffect(() => {
         formatCalendar(createCalendar(year, month));
@@ -59,6 +62,16 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
         }
     }
 
+    React.useEffect(() => {
+        const today = new Date().getDate();
+        const month = new Date().getMonth() + 1;
+        const year = new Date().getFullYear();
+
+        setToday(today);
+        setTodayMonth(month);
+        setTodayYear(year);
+    }, [today, month, year]);
+
     return (
         <div id="mini-calendar">
             <h1>{shortenedDate}</h1>
@@ -83,7 +96,9 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
                         {days.map((week: number[] | string[], index: number) => (
                             <tr key={index}>
                                 {week.map((day: number | string, index: number) => (
-                                    <td key={index}>{day}</td>
+                                    <td key={index} className={
+                                        Number(day) === today && Number(month) === todayMonth && Number(year) === todayYear ? 'today' : ''
+                                    }>{day}</td>
                                 ))}
                             </tr>
                         ))}
