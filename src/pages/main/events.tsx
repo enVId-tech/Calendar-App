@@ -26,7 +26,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "userId": document.cookie.split("=")[1],
+                    "userId": document.cookie.split(";")[1].split("=")[1],
                     "eventValues": {
                         "eventName": eventNameRef.current!.value,
                         "eventDate": eventDateRef.current!.value,

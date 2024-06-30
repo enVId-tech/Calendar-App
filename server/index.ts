@@ -272,21 +272,31 @@ app.post("/post/events", async (req, res) => {
             throw new Error("No data found");
         }
 
-        const fileData: EventsData = JSON.parse(await getItemsFromDatabase("events", { userId: data.userId }));
+        const fileData: EventsData[] = JSON.parse(await getItemsFromDatabase("events", { userId: data.userId }));
 
         console.log(fileData);
 
-        if (fileData.length === 0) {
-            fileData.events = data.events;
+        if (!fileData || fileData.length > 0) {
+            fileData[0].events.push(data.eventValues);
 
-            await modifyInDatabase({ userId: data.userId }, fileData, "events");
+            const modify = await modifyInDatabase({ userId: data.userId }, { events: fileData[0].events }, "events");
+        
+            if (!modify) {
+                res.status(500).json({ status: 500, message: "Error modifying data" });
+                throw new Error("Error modifying data");
+            }
         } else {
             const newEvents: EventsData = {
                 userId: data.userId,
-                events: data.events,
+                events: [data.eventValues]
             };
 
-            await writeToDatabase("events", newEvents);
+            const write = await writeToDatabase("events", newEvents);
+            
+            if (!write) {
+                res.status(500).json({ status: 500, message: "Error writing data" });
+                throw new Error("Error writing data");
+            }
         }
 
         res.status(200).json({ status: 200, message: "Events saved" });

@@ -164,10 +164,11 @@ async function disconnectFromDatabase(log?: boolean): Promise<boolean> {
 /**
  * Writes a document to a specified collection in the database.
  * @param collectionName The name of the collection to write to.
- * @param data The document to be inserted.
+ * @param data The document to be inserted, excluding the _id field.
  * @param log If true, logs the operation status.
  * @returns A tuple containing the inserted document's ID and a boolean indicating success.
  * @throws Error if the operation fails.
+ * @example writeToDatabase("users", { name: "John Doe" }, true);
  */
 async function writeToDatabase<T extends Document>(
   collectionName: string,
@@ -179,6 +180,11 @@ async function writeToDatabase<T extends Document>(
     if (!connected) {
       throw new Error("Failed to connect to database");
     }
+
+    if (data._id) {
+      delete data._id;
+    }
+
     const result = await mongoDBClient.writeToDatabase(collectionName, data);
     const disconnected: boolean = await disconnectFromDatabase(log);
     if (!disconnected) {
@@ -193,12 +199,13 @@ async function writeToDatabase<T extends Document>(
 
 /**
  * Modifies a document in a specified collection in the database.
- * @param filter The filter to identify the document to modify.
- * @param update The update to apply to the document.
+ * @param filter The filter to identify the document to modify, should be an object with the fields to match along with their values.
+ * @param update The update to apply to the document, should be an object with the fields to update along with their new values.
  * @param collectionName The name of the collection containing the document.
  * @param log If true, logs the operation status.
  * @returns The number of documents modified.
  * @throws Error if the operation fails.
+ * @example modifyInDatabase({ _id: "123" }, { name: "John Doe" }, "users", true);
  */
 async function modifyInDatabase<T extends Document>(
   filter: Filter<T>,
@@ -231,6 +238,7 @@ async function modifyInDatabase<T extends Document>(
  * @param log If true, logs the operation status.
  * @returns The number of documents deleted.
  * @throws Error if the operation fails.
+ * @example deleteFromDatabase({ _id: "123" }, "users", 1, true);
  */
 async function deleteFromDatabase<T extends Document>(
   filter: Filter<T>,
@@ -263,6 +271,7 @@ async function deleteFromDatabase<T extends Document>(
  * @param filter The filter to apply to the query.
  * @returns A JSON string representation of the matching documents.
  * @throws Error if the operation fails.
+ * @example getItemsFromDatabase("users", { name: "John Doe" });
  */
 async function getItemsFromDatabase<T extends Document>(
   collectionName: string,
@@ -276,6 +285,11 @@ async function getItemsFromDatabase<T extends Document>(
     }
 
     const items = await mongoDBClient.getItemsFromDatabase(collectionName, filter);
+
+    if (!items) {
+      throw new Error("Failed to retrieve items from database");
+    }
+
     return JSON.stringify(items);
   } catch (error) {
     console.error("Error getting items from database:");
