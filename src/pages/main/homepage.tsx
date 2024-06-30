@@ -32,6 +32,8 @@ const HomePage: React.FC = (): React.JSX.Element => {
             const response = await fetch('/api/post/events', dataJson);
             const data = await response.json();
 
+            console.log(events);
+
             if (data.error) {
                 console.error(data.error);
             } else {
