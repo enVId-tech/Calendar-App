@@ -19,20 +19,21 @@ const HomePage: React.FC = (): React.JSX.Element => {
             } else if (document.cookie.split(";")[1].split("=")[1] === "guest") {
                 return;
             }
+
             const dataJson = {
                 "method": "POST",
                 "headers": {
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "userId": document.cookie.split("=")[1]
+                    "userId": document.cookie.split(";")[1].split("=")[1]
                 })
             }
 
-            const response = await fetch('/api/post/events', dataJson);
+            const response = await fetch('/api/get/events', dataJson);
             const data = await response.json();
 
-            console.log(events);
+            console.log(data);
 
             if (data.error) {
                 console.error(data.error);
@@ -40,7 +41,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
                 console.log(data.message);
             }
 
-            setEvents(data);
+            setEvents(data.events);
 
         } catch (error: unknown) {
             console.error('Error:', error as string);
@@ -50,7 +51,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
     const userData = async () => {
         try {
             const userId: string | null = document.cookie.split(';')[1].split('=')[1];
-            
+
             const userData: UserData[] | undefined | null = await getUserData(userId);
 
             if (!userData) {
@@ -84,19 +85,20 @@ const HomePage: React.FC = (): React.JSX.Element => {
                     <div id="events">
                         <h2>Upcoming Events</h2>
                         <div id="event-list">
-                            <p id="default">No events found</p>
-                            {/* <div className="event">
-                                <h3>Event 1</h3>
-                                <p>Event 1 Description</p>
-                            </div>
-                            <div className="event">
-                                <h3>Event 2</h3>
-                                <p>Event 2 Description</p>
-                            </div>
-                            <div className="event">
-                                <h3>Event 3</h3>
-                                <p>Event 3 Description</p>
-                            </div> */}
+                            {
+                                events.length === 0 ? <p id="default">No events found</p> :
+                            events?.map((event, index) => {
+                                return (
+                                    <div key={index} className="event">
+                                        <h3>{event.eventName}</h3>
+                                        <p>{event.eventDescription}</p>
+                                        <p>{event.eventLocation}</p>
+                                        <p>{event.eventDate}</p>
+                                        <p>{event.eventTime}</p>
+                                    </div>
+                                )
+                            })
+                        }
                         </div>
                     </div>
 
