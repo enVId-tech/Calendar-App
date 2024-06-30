@@ -23,6 +23,19 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                 return;
             }
             
+            if (!eventNameRef.current!.value || !eventDateRef.current!.value || !eventTimeRef.current!.value) {
+                alert("Please fill out all fields");
+                return;
+            }
+
+            if (!eventDescriptionRef.current!.value) {
+                eventDescriptionRef.current!.value = "No description";
+            }
+
+            if (!eventLocationRef.current!.value) {
+                eventLocationRef.current!.value = "No location";
+            }
+
             const dataJson = {
                 "method": "POST",
                 "headers": {
