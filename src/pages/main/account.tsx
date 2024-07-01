@@ -80,8 +80,13 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
     const setPassword = async () => {
         try {
-            const password: string = document.querySelector('input[type="password"]').value;
-            const confirmPassword: string = document.querySelectorAll('input[type="password"]')[1].value;
+            const password: string = passwordRef.current?.value as string;
+            const confirmPassword: string = confirmPasswordRef.current?.value as string;
+
+            if (password === "" || confirmPassword === "") {
+                alert('Please fill out all fields');
+                return;
+            }
 
             if (password !== confirmPassword) {
                 alert('Passwords do not match');
@@ -126,7 +131,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
                     <h2>Email: {data?.email}</h2>
                     <input type='password' placeholder='Password' ref={passwordRef} />
                     <input type='password' placeholder='Confirm Password' ref={confirmPasswordRef} />
-                    <button>Update</button>
+                    <button onClick={() => setPassword()}>Change Password</button>
                 </div>
 
                 <div id="other">

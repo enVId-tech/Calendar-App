@@ -305,6 +305,39 @@ app.post("/post/events", async (req, res) => {
     }
 });
 
+app.post("/post/password", async (req, res) => {
+    try {
+        const data = req.body;
+
+        if (!data) {
+            throw new Error("No data found");
+        }
+
+        const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: data.userId }));
+
+        if (!fileData || fileData.length === 0) {
+            res.status(404).json({ status: 404, message: "No data found" });
+            throw new Error("No data found");
+        } else if (fileData.length > 1) {
+            res.status(500).json({ status: 500, message: "Multiple data found" });
+            throw new Error("Multiple data found");
+        }
+
+        fileData[0].password = data.password;
+
+        const modify = await modifyInDatabase({ userId: data.userId }, fileData[0], "users");
+
+        if (!modify) {
+            res.status(500).json({ status: 500, message: "Error modifying data" });
+            throw new Error("Error modifying data");
+        }
+
+        res.status(200).json({ status: 200, message: "Password saved" });
+    } catch (error: unknown) {
+        console.error("Error:", error);
+    }
+});
+
 app.post("/post/delete", async (req, res) => {
     try {
         const data = req.body;
@@ -327,7 +360,7 @@ app.post("/post/delete", async (req, res) => {
 });
 
 app.post("/get/events", async (req, res) => {
-    try {
+    try {f
         const data = req.body;
 
         if (!data) {
