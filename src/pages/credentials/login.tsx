@@ -29,7 +29,7 @@ const LoginPage: React.FC = (): React.JSX.Element => {
             const data: LoginData = await response.json();
 
             if (data.status === 200) {
-                console.log('Login successful!');
+                // console.log('Login successful!');
                 window.location.href = '/';
             } else if (data.status === 404) {
                 console.error('User not found:', data.message);
@@ -56,7 +56,7 @@ const LoginPage: React.FC = (): React.JSX.Element => {
             const data: LoginData = await response.json();
 
             if (data.status === 200) {
-                console.log('Login successful!');
+                // console.log('Login successful!');
                 window.location.href = '/';
             } else {
                 console.error('Login failed:', data.message);
@@ -77,10 +77,10 @@ const LoginPage: React.FC = (): React.JSX.Element => {
                 const data: LoginData = await response.json();
 
                 if (data.status === 200) {
-                    console.log('Already logged in!');
+                    // console.log('Already logged in!');
                     window.location.href = '/';
                 } else {
-                    console.log('Not logged in.');
+                    // console.log('Not logged in.');
                 }
             } catch (error: unknown) {
                 console.error('Error:', error as string);

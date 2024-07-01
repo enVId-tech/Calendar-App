@@ -1,4 +1,4 @@
-import express, { Express, Request, Response, NextFunction } from "express";
+import express, { Express } from "express";
 import {
     APP_HOSTNAME,
     SERVER_PORT,
@@ -9,7 +9,6 @@ import {
 import session from "express-session";
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
-import connectMongoDBSession from "connect-mongodb-session";
 import cors from "cors";
 import dotenv from "dotenv";
 import encrypts, {
@@ -60,7 +59,6 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(
-    // @ts-expect-error - This is a valid strategy
     new GoogleStrategy(
         {
             clientID: CLIENT_ID,
@@ -92,18 +90,17 @@ app.get(
 
             const fileData = JSON.parse(await getItemsFromDatabase("users"));
 
-            if (!fileData) {
-                throw new Error("No data found");
-            }
+            let wasFound: boolean = false;
 
-            console.log(userProfile.emails![0].value);
-            console.log(fileData);
+            fileData.forEach((element: { email: string }) => {
+                if (element.email === userProfile.emails![0].value) {
+                    wasFound = true;
+                }
+            });
 
-            let user = fileData.find(
-                (item) => item.email === userProfile.emails![0].value
-            ) || null;
+            const userId: string = await generateRandomNumber(128, "alphanumeric")
 
-            if (!user) {
+            if (!wasFound) {
                 const newUser = {
                     displayName: userProfile.displayName,
                     firstName: userProfile.name!.givenName,
@@ -111,20 +108,20 @@ app.get(
                     email: userProfile.emails![0].value,
                     profilePicture: userProfile.photos![0].value,
                     hd: userProfile._json.hd,
-                    userId: await generateRandomNumber(64, "alphanumeric"),
+                    userId: userId
                 };
-
+                
                 await writeToDatabase("users", newUser);
-                user = newUser;
+
+                await writeToDatabase("events", { userId: userId, events: [] });
             } else {
-                user.latestSession = new Date();
-                delete user._id;
-                await modifyInDatabase({ email: user.email }, user, "users");
+                delete fileData._id;
+                await modifyInDatabase({ email: fileData.email }, fileData, "users");
             }
 
-            res.cookie("userId", user.userId, {
+            res.cookie("userId", userId, {
                 maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
-                httpOnly: false,
+                httpOnly: true,
             });
 
             res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
@@ -174,8 +171,6 @@ app.post("/login/user", async (req, res) => {
 
         const fileData = JSON.parse(await getItemsFromDatabase("users", { email: data.username }));
 
-        console.log(fileData);
-
         if (!fileData || fileData.length === 0) {
             res.status(404).json({ status: 404, message: "No data found" });
             throw new Error("No data found");
@@ -185,11 +180,9 @@ app.post("/login/user", async (req, res) => {
         }
 
         if (await comparePassword(data.password, fileData[0].password)) {
-            fileData[0].latestSession = new Date();
-
             res.cookie("userId", fileData[0].userId, {
                 maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
-                httpOnly: false,
+                httpOnly: true,
             });
 
             res.status(200).json({ status: 200, message: "Logged in" });
@@ -222,17 +215,14 @@ app.post("/post/user", async (req, res) => {
         const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: req.cookies["userId"] }));
 
         if (!fileData || fileData.length === 0) {
-            throw new Error("No data found");
+            res.status(404).json({ status: 404, message: "No data found" });
         } else if (fileData.length > 1) {
-            throw new Error("Multiple data found");
+            await deleteFromDatabase({ userId: req.cookies["userId"] }, "users", "many");
+            res.status(500).json({ status: 500, message: "Multiple data found" });
         }
 
         if (fileData[0]._id) {
             delete fileData[0]._id;
-        }
-
-        if (fileData[0].session) {
-            delete fileData[0].session;
         }
 
         if (fileData[0].userId) {
@@ -250,10 +240,13 @@ app.post("/post/events", async (req, res) => {
         const data = req.cookies["userId"];
         const dataValues = req.body.eventValues;
 
-        console.log(dataValues);
+        if (data === "guest") {
+            res.status(401).json({ status: 401, message: "You must be logged in to save events" });
+            return;
+        }
 
         if (!data) {
-            throw new Error("No data found");
+            res.status(400).json({ status: 400, message: "No data found" });
         }
 
         const fileData: EventsData[] = JSON.parse(await getItemsFromDatabase("events", { userId: data }));
@@ -279,6 +272,7 @@ app.post("/post/events", async (req, res) => {
 
         res.status(200).json({ status: 200, message: "Events saved" });
     } catch (error: unknown) {
+        res.status(500).json({ status: 500, message: "Internal server error" });
         console.error("Error:", error);
     }
 });
@@ -289,7 +283,7 @@ app.post("/post/password", async (req, res) => {
         const cookie = req.cookies["userId"];
 
         if (!data) {
-            throw new Error("No data found");
+            res.status(400).json({ status: 400, message: "No data found" });
         }
 
         const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: cookie }));
@@ -301,10 +295,8 @@ app.post("/post/password", async (req, res) => {
 
         if (!fileData || fileData.length === 0) {
             res.status(404).json({ status: 404, message: "No data found" });
-            throw new Error("No data found");
         } else if (fileData.length > 1) {
             res.status(500).json({ status: 500, message: "Multiple data found" });
-            throw new Error("Multiple data found");
         }
 
         fileData[0].password = encrypts.permanentEncryptPassword(data.password);
@@ -320,6 +312,7 @@ app.post("/post/password", async (req, res) => {
 
         res.status(200).json({ status: 200, message: "Password saved" });
     } catch (error: unknown) {
+        res.status(500).json({ status: 500, message: "Internal server error" });
         console.error("Error:", error);
     }
 });
@@ -355,6 +348,11 @@ app.post("/get/events", async (req, res) => {
     try {
         const data: string = req.cookies["userId"];
 
+        if (data === "guest") {
+            res.status(401).json({ status: 401, message: "You must be logged in to view events" });
+            return;
+        }
+
         if (!data) {
             res.status(400).json({ status: 400, message: "No data found" });
             return;
@@ -370,6 +368,23 @@ app.post("/get/events", async (req, res) => {
             res.status(200).json(fileData[0]);
         }
     } catch (error: unknown) {
+        res.status(500).json({ status: 500, message: "Internal server error" });
+        console.error("Error:", error);
+    }
+});
+
+app.post("/check/login", async (req, res) => {
+    try {
+        const data = req.cookies["userId"];
+
+        if (!data) {
+            res.status(404).json({ status: 404, message: "No data found" });
+            return;
+        }
+
+        res.status(200).json({ status: 200, message: "Logged in" });
+    } catch (error: unknown) {
+        res.status(500).json({ status: 500, message: "Internal server error" });
         console.error("Error:", error);
     }
 });

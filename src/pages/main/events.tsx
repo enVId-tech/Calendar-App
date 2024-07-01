@@ -18,11 +18,6 @@ const EventsPage: React.FC = (): React.JSX.Element => {
         try {
             eventSubmitRef.current!.disabled = true;
 
-            if (getCookie("userId") === "guest") {
-                alert("You must be logged in to create an event");
-                return;
-            }
-
             if (!eventNameRef.current!.value || !eventDateRef.current!.value || !eventTimeRef.current!.value) {
                 alert("Please fill out all fields");
                 return;
@@ -53,6 +48,15 @@ const EventsPage: React.FC = (): React.JSX.Element => {
             }
 
             const response = await fetch('/api/post/events', { ...dataJson, "credentials": "include" });
+            
+            if (response.status === 401) {
+                alert("You must be logged in to create an event");
+                return;
+            } else if (response.status === 500) {
+                alert("An error occurred. Please try again later.");
+                return;
+            }
+
             const data = await response.json();
 
             if (data.error) {
@@ -70,9 +74,16 @@ const EventsPage: React.FC = (): React.JSX.Element => {
     const getEvents = async () => {
         try {
             const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
-            const data = await response.json();
+            
+            if (response.status === 401) {
+                alert("You must be logged in to view events");
+                return;
+            } else if (response.status === 500) {
+                alert("Server error");
+                return;
+            }
 
-            console.log(data);
+            const data = await response.json();
 
             if (data.error) {
                 console.error(data.error);
@@ -87,23 +98,17 @@ const EventsPage: React.FC = (): React.JSX.Element => {
 
     const deleteEvent = async (eventId: string) => {
         try {
-            if (getCookie("userId") === "guest") {
-                alert("You must be logged in to delete an event");
-                return;
-            }
-
             const dataJson = {
                 "method": "DELETE",
                 "headers": {
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "userId": getCookie("userId"),
                     "eventId": eventId
                 })
             }
 
-            const response = await fetch('/api/delete/events', dataJson);
+            const response = await fetch('/api/delete/events', { ...dataJson, "credentials": "include"});
             const data = await response.json();
 
             if (data.error) {

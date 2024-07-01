@@ -13,26 +13,26 @@ const HomePage: React.FC = (): React.JSX.Element => {
 
     const getEvents = async () => {
         try {
-            if (getCookie("userId") === "") {
-                window.location.href = '/login';
+            const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
+            
+            if (response.status === 401) {
+                alert("You must be logged in to view events");
                 return;
-            } else if (getCookie("userId") === "guest") {
+            } else if (response.status === 500) {
+                alert("Server error");
+                return;
+            } else if (response.status === 404) {
+                alert("No events found");
                 return;
             }
 
-            const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
             const data = await response.json();
-
-            console.log(data);
 
             if (data.error) {
                 console.error(data.error);
-            } else {
-                console.log(data.message);
             }
-
+            
             setEvents(data.events);
-
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }

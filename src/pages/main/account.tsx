@@ -34,7 +34,6 @@ const AccountPage: React.FC = (): React.JSX.Element => {
             if (data.error) {
                 console.error(data.error);
             } else {
-                console.log(data.message);
                 window.location.href = '/login';
             }
         } catch (error: unknown) {
@@ -49,8 +48,6 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
             if (data.error) {
                 console.error(data.error);
-            } else {
-                console.log(data.message);
             }
         } catch (error: unknown) {
             console.error('Error:', error as string);
@@ -87,8 +84,6 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
             if (data.error) {
                 console.error(data.error);
-            } else {
-                console.log(data.message);
             }
         } catch (error: unknown) {
             console.error('Error:', error as string);
