@@ -23,7 +23,7 @@ import {
     writeToDatabase,
 } from "./modules/mongoDB";
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { EventsData } from "./modules/interface";
+import { EventsData, EventsPrelim } from "./modules/interface";
 import cookieParser from "cookie-parser";
 
 const app: Express = express();
@@ -98,9 +98,9 @@ app.get(
                 }
             });
 
-            const userId: string = await generateRandomNumber(128, "alphanumeric")
-
             if (!wasFound) {
+                const userId: string = await generateRandomNumber(128, "alphanumeric")
+
                 const newUser = {
                     displayName: userProfile.displayName,
                     firstName: userProfile.name!.givenName,
@@ -110,19 +110,23 @@ app.get(
                     hd: userProfile._json.hd,
                     userId: userId
                 };
-                
+
                 await writeToDatabase("users", newUser);
 
                 await writeToDatabase("events", { userId: userId, events: [] });
-            } else {
-                delete fileData._id;
-                await modifyInDatabase({ email: fileData.email }, fileData, "users");
-            }
 
-            res.cookie("userId", userId, {
-                maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
-                httpOnly: true,
-            });
+                res.cookie("userId", userId, {
+                    maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
+                    httpOnly: true,
+                });
+            } else {
+                const userId = fileData[0].userId;
+
+                res.cookie("userId", userId, {
+                    maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
+                    httpOnly: true,
+                });
+            }
 
             res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
         } catch (error: unknown) {
@@ -249,7 +253,9 @@ app.post("/post/events", async (req, res) => {
             res.status(400).json({ status: 400, message: "No data found" });
         }
 
-        const fileData: EventsData[] = JSON.parse(await getItemsFromDatabase("events", { userId: data }));
+        dataValues.eventId = await generateRandomNumber(128, "alphanumeric");
+
+        const fileData: EventsData<EventsPrelim>[] = JSON.parse(await getItemsFromDatabase("events", { userId: data }));
 
         if (!fileData || fileData.length === 0) {
             const newEvent = {
@@ -367,6 +373,54 @@ app.post("/get/events", async (req, res) => {
             delete fileData[0].userId;
             res.status(200).json(fileData[0]);
         }
+    } catch (error: unknown) {
+        res.status(500).json({ status: 500, message: "Internal server error" });
+        console.error("Error:", error);
+    }
+});
+
+app.post("/delete/events", async (req, res) => {
+    try {
+        const data = req.cookies["userId"];
+        const eventId = req.body.eventId;
+
+        if (data === "guest") {
+            res.status(401).json({ status: 401, message: "You must be logged in to delete events" });
+            return;
+        }
+
+        if (!data) {
+            res.status(400).json({ status: 400, message: "No data found" });
+            return;
+        }
+
+        const fileData: EventsData<EventsPrelim>[] = JSON.parse(await getItemsFromDatabase("events", { userId: data }));
+
+        if (!fileData || fileData.length === 0) {
+            res.status(404).json({ status: 404, message: "No data found" });
+            return;
+        }
+
+        const index = fileData[0].events.findIndex((element) => element.eventId === eventId);
+
+        if (index === -1) {
+            res.status(404).json({ status: 404, message: "No event found" });
+            return;
+        }
+
+        fileData[0].events.splice(index, 1);
+
+        delete fileData[0]._id;
+        delete fileData[0].userId;
+
+        const modify = await modifyInDatabase({ userId: data }, fileData[0], "events");
+
+        if (!modify) {
+            res.status(500).json({ status: 500, message: "Error modifying data" });
+            return;
+        }
+
+        res.status(200).json({ status: 200, message: "Event deleted" });
     } catch (error: unknown) {
         res.status(500).json({ status: 500, message: "Internal server error" });
         console.error("Error:", error);

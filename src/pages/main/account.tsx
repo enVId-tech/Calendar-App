@@ -43,6 +43,10 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
     const deleteAccount = async () => {
         try {
+            if (!confirm('Are you sure you want to delete your account?')) {
+                return;
+            }
+
             const response = await fetch('/api/post/delete', { "method": "POST", "credentials": "include" });
             const data = await response.json();
 

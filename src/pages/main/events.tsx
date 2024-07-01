@@ -144,8 +144,8 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                                     :
                                     events?.map((event: EventData, index: number) => {
                                         return (
-                                            <div className="event" key={index} id={event.eventId}>
-                                                <button onClick={() => deleteEvent(event.eventId)}>Del</button>
+                                            <div className="event" key={index} id={event?.eventId}>
+                                                <button onClick={() => deleteEvent(event?.eventId)}>Del</button>
                                                 <div className="eventInfo">
                                                     <h3>{event?.eventName}</h3>
                                                     <p>{event?.eventDescription}</p>

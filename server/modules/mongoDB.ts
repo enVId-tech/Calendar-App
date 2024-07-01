@@ -267,7 +267,6 @@ async function deleteFromDatabase<T extends Document>(
 /**
  * Retrieves documents from a specified collection in the database.
  * @param collectionName The name of the collection to query.
- * @param log If true, logs the operation status.
  * @param filter The filter to apply to the query.
  * @returns A JSON string representation of the matching documents.
  * @throws Error if the operation fails.

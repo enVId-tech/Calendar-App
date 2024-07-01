@@ -18,6 +18,7 @@ interface EventData {
     eventLocation: string;
     eventTime: string;
     eventDate: string;
+    eventId: string;
 }
 
 export type { CreateCalendarProps, UserData, EventData }
