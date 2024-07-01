@@ -14,7 +14,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
 
     const [events, setEvents] = React.useState<EventData[]>([]);
 
-    const sendEvents = async () => {
+    const sendEvents = async (): Promise<void> => {
         try {
             eventSubmitRef.current!.disabled = true;
 
@@ -71,7 +71,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
         }
     }
 
-    const getEvents = async () => {
+    const getEvents = async (): Promise<void> => {
         try {
             const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
 
@@ -98,7 +98,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
         }
     }
 
-    const deleteEvent = async (eventId: string) => {
+    const deleteEvent = async (eventId: string): Promise<void> => {
         try {
             const dataJson = {
                 "method": "POST",

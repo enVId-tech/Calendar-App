@@ -11,12 +11,12 @@ const HomePage: React.FC = (): React.JSX.Element => {
     const [data, setData] = React.useState<UserData | null | undefined>();
     const [events, setEvents] = React.useState<EventData[]>([]);
 
-    const getEvents = async () => {
+    const getEvents = async (): Promise<void> => {
         try {
             const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
             
             if (response.status === 401) {
-                alert("You must be logged in to view events");
+                console.log("Guest account");
                 return;
             } else if (response.status === 500) {
                 alert("Server error");
@@ -31,23 +31,36 @@ const HomePage: React.FC = (): React.JSX.Element => {
             if (data.error) {
                 console.error(data.error);
             }
-            
+
             setEvents(data.events);
         } catch (error: unknown) {
             console.error('Error:', error as string);
         }
     }
 
-    const userData = async () => {
+    const userData = async (): Promise<void> => {
         try {
-            const userData: UserData[] | undefined | null = await getUserData();
+            const userData: UserData[] | null | undefined = await getUserData();
 
-            if (!userData) {
+            if (userData === null) {
                 window.location.href = '/login';
                 return;
             }
 
-            setData(userData[0]);
+            if (userData === undefined) {
+                console.error('Guest account');
+                setData({
+                    firstName: 'Guest',
+                    lastName: 'Account',
+                    email: '',
+                    profilePicture: '',
+                    displayName: 'Guest Account',
+                    hd: '',
+                })
+                return;
+            }
+
+            setData(userData![0]);
 
             getEvents();
         } catch (error: unknown) {

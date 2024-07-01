@@ -13,9 +13,8 @@ async function getUserData(): Promise<UserData[] | null | undefined> {
             window.location.href = '/login';
             return null;
         } else if (response.status === 401) {
-            console.error('Error: You must be logged in to view this page');
-            window.location.href = '/login';
-            return;
+            console.log("Guest account");
+            return 
         } else if (response.status === 500) {
             console.error('Error: An error occurred. Please try again later.');
             window.location.href = '/login';

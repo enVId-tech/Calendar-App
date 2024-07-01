@@ -11,7 +11,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
     const passwordRef = React.useRef<HTMLInputElement>(null);
     const confirmPasswordRef = React.useRef<HTMLInputElement>(null);
 
-    const getData = async () => {
+    const getData = async (): Promise<void> => {
         try {
             const userData: UserData[] | undefined | null = await getUserData();
 
@@ -26,7 +26,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
         }
     }
 
-    const logout = async () => {
+    const logout = async (): Promise<void> => {
         try {
             const response = await fetch('/api/credentials/logout', { "method": "POST", "credentials": "include" });
             const data = await response.json();
@@ -41,17 +41,25 @@ const AccountPage: React.FC = (): React.JSX.Element => {
         }
     }
 
-    const deleteAccount = async () => {
+    const deleteAccount = async (): Promise<void> => {
         try {
             if (!confirm('Are you sure you want to delete your account?')) {
                 return;
             }
 
             const response = await fetch('/api/post/delete', { "method": "POST", "credentials": "include" });
-            const data = await response.json();
 
-            if (data.error) {
-                console.error(data.error);
+            if (response.status === 401) {
+                alert('You must be logged in to delete your account');
+                return;
+            } else if (response.status === 500) {
+                alert('An error occurred. Please try again later.');
+                return;
+            } else if (response.status === 404) {
+                alert('No account found');
+                return;
+            } else {
+                window.location.href = '/login';
             }
         } catch (error: unknown) {
             console.error('Error:', error as string);

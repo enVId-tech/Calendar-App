@@ -3,7 +3,7 @@ import '../../assets/scss/calendar.scss';
 import Sidebar from '../../assets/components/sidebar.tsx';
 import FormatCalendar from '../../assets/components/format-calendar.tsx';
 
-const CalendarPage: React.FC = () => {
+const CalendarPage: React.FC = (): React.JSX.Element => {
     return (
         <section id="calendar">
             <Sidebar />
