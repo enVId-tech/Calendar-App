@@ -119,6 +119,12 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
     React.useEffect(() => {
         getData();
+
+        document.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+                setPassword();
+            }
+        });
     }, []);
 
     return (

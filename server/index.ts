@@ -12,7 +12,7 @@ import GoogleStrategy from "passport-google-oauth20";
 import connectMongoDBSession from "connect-mongodb-session";
 import cors from "cors";
 import dotenv from "dotenv";
-import {
+import encrypts, {
     generateRandomNumber,
     permanentEncryptPassword,
 } from "./modules/encryption";
@@ -280,7 +280,7 @@ app.post("/post/events", async (req, res) => {
             fileData[0].events.push(data.eventValues);
 
             const modify = await modifyInDatabase({ userId: data.userId }, { events: fileData[0].events }, "events");
-        
+
             if (!modify) {
                 res.status(500).json({ status: 500, message: "Error modifying data" });
                 throw new Error("Error modifying data");
@@ -292,7 +292,7 @@ app.post("/post/events", async (req, res) => {
             };
 
             const write = await writeToDatabase("events", newEvents);
-            
+
             if (!write) {
                 res.status(500).json({ status: 500, message: "Error writing data" });
                 throw new Error("Error writing data");
@@ -323,9 +323,9 @@ app.post("/post/password", async (req, res) => {
             throw new Error("Multiple data found");
         }
 
-        fileData[0].password = data.password;
+        console.log(data);
 
-        const modify = await modifyInDatabase({ userId: data.userId }, fileData[0], "users");
+        const modify = await modifyInDatabase({ userId: data.userId }, { password: encrypts.permanentEncryptPassword(data.password) }, "users");
 
         if (!modify) {
             res.status(500).json({ status: 500, message: "Error modifying data" });
@@ -360,7 +360,8 @@ app.post("/post/delete", async (req, res) => {
 });
 
 app.post("/get/events", async (req, res) => {
-    try {f
+    try {
+        f
         const data = req.body;
 
         if (!data) {
