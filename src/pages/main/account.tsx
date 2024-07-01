@@ -30,17 +30,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
     const logout = async () => {
         try {
-            const dataJson = {
-                "method": "POST",
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": JSON.stringify({
-                    "userId": document.cookie.split(";")[1].split("=")[1]
-                }),
-            }
-
-            const response = await fetch('/api/credentials/logout', dataJson);
+            const response = await fetch('/api/credentials/logout', { "method": "POST", "credentials": "include" });
             const data = await response.json();
 
             if (data.error) {
@@ -100,12 +90,11 @@ const AccountPage: React.FC = (): React.JSX.Element => {
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "userId": document.cookie.split(";")[1].split("=")[1],
                     "password": password
                 })
             }
 
-            const response = await fetch('/api/post/password', dataJson);
+            const response = await fetch('/api/post/password', { ...dataJson, "credentials": "include" });
             const data = await response.json();
 
             if (data.error) {

@@ -3,6 +3,7 @@ import React from 'react';
 import '../../assets/scss/events.scss';
 import Sidebar from '../../assets/components/sidebar';
 import { EventData, UserData } from '../../assets/ts/interfaces';
+import getCookie from '../../assets/ts/getCookie';
 
 const EventsPage: React.FC = (): React.JSX.Element => {
     const eventNameRef = React.useRef<HTMLInputElement>(null);
@@ -18,11 +19,11 @@ const EventsPage: React.FC = (): React.JSX.Element => {
         try {
             eventSubmitRef.current!.disabled = true;
 
-            if (document.cookie.split(";")[1].split("=")[1] === "guest") {
+            if (getCookie("userId") === "guest") {
                 alert("You must be logged in to create an event");
                 return;
             }
-            
+
             if (!eventNameRef.current!.value || !eventDateRef.current!.value || !eventTimeRef.current!.value) {
                 alert("Please fill out all fields");
                 return;
@@ -42,7 +43,6 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "userId": document.cookie.split(";")[1].split("=")[1],
                     "eventValues": {
                         "eventName": eventNameRef.current!.value,
                         "eventDate": eventDateRef.current!.value,
@@ -53,7 +53,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                 })
             }
 
-            const response = await fetch('/api/post/events', dataJson);
+            const response = await fetch('/api/post/events', { ...dataJson, "credentials": "include" });
             const data = await response.json();
 
             if (data.error) {
@@ -70,23 +70,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
 
     const getEvents = async () => {
         try {
-            if (document.cookie.split(";")[1].split("=")[1] === "") {
-                window.location.href = '/login';
-                return;
-            } else if (document.cookie.split(";")[1].split("=")[1] === "guest") {
-                return;
-            }
-            const dataJson = {
-                "method": "POST",
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": JSON.stringify({
-                    "userId": document.cookie.split(";")[1].split("=")[1]
-                })
-            }
-
-            const response = await fetch('/api/get/events', dataJson);
+            const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
             const data = await response.json();
 
             console.log(data);
@@ -104,7 +88,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
 
     const deleteEvent = async (eventId: string) => {
         try {
-            if (document.cookie.split(";")[1].split("=")[1] === "guest") {
+            if (getCookie("userId") === "guest") {
                 alert("You must be logged in to delete an event");
                 return;
             }
@@ -115,7 +99,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "userId": document.cookie.split(";")[1].split("=")[1],
+                    "userId": getCookie("userId"),
                     "eventId": eventId
                 })
             }
@@ -155,11 +139,11 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                                     events?.map((event: EventData, index: number) => {
                                         return (
                                             <div className="event" key={index}>
-                                                <h3>{event.eventName}</h3>
-                                                <p>{event.eventDescription}</p>
-                                                <p>{event.eventDate}</p>
-                                                <p>{event.eventTime}</p>
-                                                <p>{event.eventLocation}</p>
+                                                <h3>{event?.eventName}</h3>
+                                                <p>{event?.eventDescription}</p>
+                                                <p>{event?.eventDate}</p>
+                                                <p>{event?.eventTime}</p>
+                                                <p>{event?.eventLocation}</p>
                                             </div>
                                         )
                                     })

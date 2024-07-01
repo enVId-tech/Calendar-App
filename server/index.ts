@@ -74,16 +74,6 @@ app.use(
         secret: SECRET,
         resave: false,
         saveUninitialized: true,
-        store: new MongoDBStore({
-            uri: process.env.MONGODB_URI!,
-            databaseName: process.env.CLIENT_DB,
-            collection: "sessions",
-            expires: 1000 * 60 * 60 * 24 * 31, // 1 month
-        }),
-        cookie: {
-            httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
-        },
     })
 );
 
@@ -151,8 +141,6 @@ app.get(
                     profilePicture: userProfile.photos![0].value,
                     hd: userProfile._json.hd,
                     userId: await generateRandomNumber(64, "alphanumeric"),
-                    session: req.sessionID,
-                    latestSession: new Date(),
                 };
 
                 await writeToDatabase("users", newUser);
@@ -292,36 +280,33 @@ app.post("/post/user", async (req, res) => {
 
 app.post("/post/events", async (req, res) => {
     try {
-        const data = req.body;
+        const data = req.cookies["userId"];
+        const dataValues = req.body.eventValues;
+
+        console.log(dataValues);
 
         if (!data) {
             throw new Error("No data found");
         }
 
-        const fileData: EventsData[] = JSON.parse(await getItemsFromDatabase("events", { userId: data.userId }));
+        const fileData: EventsData[] = JSON.parse(await getItemsFromDatabase("events", { userId: data }));
 
-        console.log(fileData);
-
-        if (!fileData || fileData.length > 0) {
-            fileData[0].events.push(data.eventValues);
-
-            const modify = await modifyInDatabase({ userId: data.userId }, { events: fileData[0].events }, "events");
-
-            if (!modify) {
-                res.status(500).json({ status: 500, message: "Error modifying data" });
-                throw new Error("Error modifying data");
-            }
-        } else {
-            const newEvents: EventsData = {
-                userId: data.userId,
-                events: [data.eventValues]
+        if (!fileData || fileData.length === 0) {
+            const newEvent = {
+                userId: data,
+                events: [dataValues],
             };
 
-            const write = await writeToDatabase("events", newEvents);
+            await writeToDatabase("events", newEvent);
+        } else {
+            fileData[0].events.push(dataValues);
 
-            if (!write) {
-                res.status(500).json({ status: 500, message: "Error writing data" });
-                throw new Error("Error writing data");
+            delete fileData[0]._id;
+
+            const modify = await modifyInDatabase({ userId: data }, fileData[0], "events");
+
+            if (!modify) {
+                throw new Error("Error modifying data");
             }
         }
 
@@ -334,12 +319,13 @@ app.post("/post/events", async (req, res) => {
 app.post("/post/password", async (req, res) => {
     try {
         const data = req.body;
+        const cookie = req.cookies["userId"];
 
         if (!data) {
             throw new Error("No data found");
         }
 
-        const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: data.userId }));
+        const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: cookie }));
 
         if (await comparePassword(data.password, fileData[0].password)) {
             res.status(200).json({ status: 200, message: "Password is the same" });
@@ -358,7 +344,7 @@ app.post("/post/password", async (req, res) => {
 
         delete fileData[0]._id;
 
-        const modify = await modifyInDatabase({ userId: data.userId }, fileData[0], "users");
+        const modify = await modifyInDatabase({ userId: cookie }, fileData[0], "users");
 
         if (!modify) {
             res.status(500).json({ status: 500, message: "Error modifying data" });
@@ -394,13 +380,14 @@ app.post("/post/delete", async (req, res) => {
 
 app.post("/get/events", async (req, res) => {
     try {
-        const data = req.body;
+        const data: string = req.cookies["userId"];
 
         if (!data) {
-            throw new Error("No data found");
+            res.status(400).json({ status: 400, message: "No data found" });
+            return;
         }
 
-        const fileData = JSON.parse(await getItemsFromDatabase("events", { userId: data.userId }));
+        const fileData = JSON.parse(await getItemsFromDatabase("events", { userId: data }));
 
         if (!fileData) {
             res.status(200).json({ status: 200, message: "No events found" });
@@ -416,13 +403,13 @@ app.post("/get/events", async (req, res) => {
 
 app.post("/credentials/logout", async (req, res) => {
     try {
-        const data = req.body;
+        const data = req.cookies["userId"];
 
         if (!data) {
             return res.status(400).json({ status: 400, message: "No data found" });
         }
 
-        await getItemsFromDatabase("users", { userId: data.userId });
+        await getItemsFromDatabase("users", { userId: data });
 
         res.clearCookie("userId");
 

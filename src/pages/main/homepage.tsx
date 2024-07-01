@@ -21,17 +21,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
                 return;
             }
 
-            const dataJson = {
-                "method": "POST",
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": JSON.stringify({
-                    "userId": getCookie("userId")
-                })
-            }
-
-            const response = await fetch('/api/get/events', dataJson);
+            const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
             const data = await response.json();
 
             console.log(data);
@@ -87,15 +77,15 @@ const HomePage: React.FC = (): React.JSX.Element => {
                         <h2>Upcoming Events</h2>
                         <div id="event-list">
                             {
-                                events.length === 0 ? <p id="default">No events found</p> :
+                                events === null || events === undefined || events.length < 1 ? <p id="default">No events found</p> :
                             events?.map((event, index) => {
                                 return (
                                     <div key={index} className="event">
-                                        <h3>{event.eventName}</h3>
-                                        <p>{event.eventDescription}</p>
-                                        <p>{event.eventLocation}</p>
-                                        <p>{event.eventDate}</p>
-                                        <p>{event.eventTime}</p>
+                                        <h3>{event?.eventName}</h3>
+                                        <p>{event?.eventDescription}</p>
+                                        <p>{event?.eventLocation}</p>
+                                        <p>{event?.eventDate}</p>
+                                        <p>{event?.eventTime}</p>
                                     </div>
                                 )
                             })
