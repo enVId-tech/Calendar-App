@@ -48,7 +48,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
             }
 
             const response = await fetch('/api/post/events', { ...dataJson, "credentials": "include" });
-            
+
             if (response.status === 401) {
                 alert("You must be logged in to create an event");
                 return;
@@ -74,7 +74,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
     const getEvents = async () => {
         try {
             const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
-            
+
             if (response.status === 401) {
                 alert("You must be logged in to view events");
                 return;
@@ -90,6 +90,8 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                 return;
             }
 
+            console.log(data.events);
+
             setEvents(data.events);
         } catch (error: unknown) {
             console.error('Error:', error as string);
@@ -99,7 +101,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
     const deleteEvent = async (eventId: string) => {
         try {
             const dataJson = {
-                "method": "DELETE",
+                "method": "POST",
                 "headers": {
                     "Content-Type": "application/json"
                 },
@@ -108,7 +110,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                 })
             }
 
-            const response = await fetch('/api/delete/events', { ...dataJson, "credentials": "include"});
+            const response = await fetch('/api/delete/events', { ...dataJson, "credentials": "include" });
             const data = await response.json();
 
             if (data.error) {
@@ -142,12 +144,15 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                                     :
                                     events?.map((event: EventData, index: number) => {
                                         return (
-                                            <div className="event" key={index}>
-                                                <h3>{event?.eventName}</h3>
-                                                <p>{event?.eventDescription}</p>
-                                                <p>{event?.eventDate}</p>
-                                                <p>{event?.eventTime}</p>
-                                                <p>{event?.eventLocation}</p>
+                                            <div className="event" key={index} id={event.eventId}>
+                                                <button onClick={() => deleteEvent(event.eventId)}>Del</button>
+                                                <div className="eventInfo">
+                                                    <h3>{event?.eventName}</h3>
+                                                    <p>{event?.eventDescription}</p>
+                                                    <p>{event?.eventDate}</p>
+                                                    <p>{event?.eventTime}</p>
+                                                    <p>{event?.eventLocation}</p>
+                                                </div>
                                             </div>
                                         )
                                     })
