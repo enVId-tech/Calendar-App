@@ -13,6 +13,7 @@ import connectMongoDBSession from "connect-mongodb-session";
 import cors from "cors";
 import dotenv from "dotenv";
 import encrypts, {
+    comparePassword,
     generateRandomNumber,
     permanentEncryptPassword,
 } from "./modules/encryption";
@@ -202,14 +203,45 @@ app.get("/login/guest", async (req, res) => {
     }
 });
 
-app.get("/login", checkSession, (req, res) => {
-    if (req.sessionID) {
-        console.log("Session ID:", req.sessionID);
-    } else {
-        console.log(req);
-    }
+app.post("/login/user", async (req, res) => {
+    try {
+        const data = req.body;
 
-    res.status(200).send("Login page requested");
+        if (!data) {
+            throw new Error("No data found");
+        }
+
+        const fileData = JSON.parse(await getItemsFromDatabase("users", { email: data.username }));
+
+        console.log(fileData);
+
+        if (!fileData || fileData.length === 0) {
+            res.status(404).json({ status: 404, message: "No data found" });
+            throw new Error("No data found");
+        } else if (fileData.length > 1) {
+            res.status(500).json({ status: 500, message: "Multiple data found" });
+            throw new Error("Multiple data found");
+        }
+
+        if (await comparePassword(data.password, fileData[0].password)) {
+            fileData[0].latestSession = new Date();
+
+            res.cookie("userId", fileData[0].userId, {
+                maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
+                httpOnly: false,
+            });
+
+            res.status(200).json({ status: 200, message: "Logged in" });
+        } else {
+            res.status(401).json({ status: 401, message: "Incorrect password" });
+        }
+    } catch (error: unknown) {
+        console.error("Error:", error);
+    }
+});
+
+app.get("/login", checkSession, (req, res) => {
+    res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
 });
 
 app.post("/calendar/user/data", async (req, res) => {
@@ -315,6 +347,11 @@ app.post("/post/password", async (req, res) => {
 
         const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: data.userId }));
 
+        if (await comparePassword(data.password, fileData[0].password)) {
+            res.status(200).json({ status: 200, message: "Password is the same" });
+            return;
+        }
+
         if (!fileData || fileData.length === 0) {
             res.status(404).json({ status: 404, message: "No data found" });
             throw new Error("No data found");
@@ -323,9 +360,11 @@ app.post("/post/password", async (req, res) => {
             throw new Error("Multiple data found");
         }
 
-        console.log(data);
+        fileData[0].password = encrypts.permanentEncryptPassword(data.password);
 
-        const modify = await modifyInDatabase({ userId: data.userId }, { password: encrypts.permanentEncryptPassword(data.password) }, "users");
+        delete fileData[0]._id;
+
+        const modify = await modifyInDatabase({ userId: data.userId }, fileData[0], "users");
 
         if (!modify) {
             res.status(500).json({ status: 500, message: "Error modifying data" });
@@ -361,7 +400,6 @@ app.post("/post/delete", async (req, res) => {
 
 app.post("/get/events", async (req, res) => {
     try {
-        f
         const data = req.body;
 
         if (!data) {
@@ -392,15 +430,17 @@ app.post("/credentials/logout", async (req, res) => {
 
         await getItemsFromDatabase("users", { userId: data.userId });
 
-        req.cookies = null;
+        res.clearCookie("userId");
 
         req.session.destroy((err) => {
             if (err) {
                 console.error("Session destruction error:", err);
                 return res.status(500).json({ status: 500, message: "Error during logout" });
             }
+            res.clearCookie("connect.sid");
             res.status(200).json({ status: 200, message: "Logged out" });
         });
+
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ status: 500, message: "Internal server error" });

@@ -10,7 +10,9 @@ const LoginPage: React.FC = (): React.JSX.Element => {
     const username = React.useRef<HTMLInputElement>(null);
     const password = React.useRef<HTMLInputElement>(null);
 
-    const loginToAccount = async (): Promise<void> => {
+    const loginToAccount = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+        e.preventDefault();
+
         const jsonData: object = {
             "method": "POST",
             "headers": {
@@ -29,8 +31,15 @@ const LoginPage: React.FC = (): React.JSX.Element => {
             if (data.status === 200) {
                 console.log('Login successful!');
                 window.location.href = '/';
+            } else if (data.status === 404) {
+                console.error('User not found:', data.message);
+                alert('User not found. Please try again.');
+            } else if (data.status === 401) {
+                console.error('Incorrect password:', data.message);
+                alert('Incorrect password. Please try again.');
             } else {
                 console.error('Login failed:', data.message);
+                alert('Login failed. Please try again.');
             }
         } catch (error: unknown) {
             console.error('Error:', error as string);
@@ -87,10 +96,12 @@ const LoginPage: React.FC = (): React.JSX.Element => {
                 <div id="regLogin">
                     <h1>Login</h1>
 
-                    <input type="text" placeholder="Username" ref={username} />
-                    <input type="password" placeholder="Password" ref={password} />
+                    <form onSubmit={loginToAccount}>
+                        <input type="text" placeholder="Email" ref={username} />
+                        <input type="password" placeholder="Password" autoComplete='current-password' ref={password} />
 
-                    <button type="submit" onClick={() => loginToAccount()}>Login</button>
+                        <button type="submit">Login</button>
+                    </form>
 
                     <hr />
 

@@ -6,6 +6,7 @@ import { EventData, UserData } from '../../assets/ts/interfaces';
 import getUserData from '../../assets/ts/getUserData';
 import Sidebar from '../../assets/components/sidebar';
 import FormatCalendar from '../../assets/components/format-calendar';
+import getCookie from '../../assets/ts/getCookie';
 
 const HomePage: React.FC = (): React.JSX.Element => {
     const [data, setData] = React.useState<UserData | null | undefined>();
@@ -13,10 +14,10 @@ const HomePage: React.FC = (): React.JSX.Element => {
 
     const getEvents = async () => {
         try {
-            if (document.cookie.split(";")[1].split("=")[1] === "") {
+            if (getCookie("userId") === "") {
                 window.location.href = '/login';
                 return;
-            } else if (document.cookie.split(";")[1].split("=")[1] === "guest") {
+            } else if (getCookie("userId") === "guest") {
                 return;
             }
 
@@ -26,7 +27,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "userId": document.cookie.split(";")[1].split("=")[1]
+                    "userId": getCookie("userId")
                 })
             }
 
@@ -50,7 +51,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
 
     const userData = async () => {
         try {
-            const userId: string | null = document.cookie.split(';')[1].split('=')[1];
+            const userId: string | null = getCookie("userId");
 
             const userData: UserData[] | undefined | null = await getUserData(userId);
 

@@ -4,18 +4,15 @@ import Sidebar from '../../assets/components/sidebar.tsx';
 import FormatCalendar from '../../assets/components/format-calendar.tsx';
 import { EventData, UserData } from '../../assets/ts/interfaces.ts';
 import getUserData from '../../assets/ts/getUserData.ts';
+import getCookie from '../../assets/ts/getCookie.ts';
 
 const CalendarPage: React.FC = () => {
-    const [year, setYear] = React.useState<number>(new Date().getFullYear());
-    const [month, setMonth] = React.useState<number>(new Date().getMonth() + 1);
-    const [days, setDays] = React.useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
-
     const [data, setData] = React.useState<UserData>();
     const [events, setEvents] = React.useState<EventData>();
 
     const getEvents = async () => {
         try {
-            if (document.cookie.split(";")[1].split("=")[1] === "") {
+            if (getCookie("userId") === "") {
                 window.location.href = '/login';
                 return;
             } else if (document.cookie.split(";")[1].split("=")[1] === "guest") {

@@ -40,13 +40,14 @@ const AccountPage: React.FC = (): React.JSX.Element => {
                 })
             }
 
-            const response = await fetch('/api/post/logout', dataJson);
+            const response = await fetch('/api/credentials/logout', dataJson);
             const data = await response.json();
 
             if (data.error) {
                 console.error(data.error);
             } else {
                 console.log(data.message);
+                window.location.href = '/login';
             }
         } catch (error: unknown) {
             console.error('Error:', error as string);
