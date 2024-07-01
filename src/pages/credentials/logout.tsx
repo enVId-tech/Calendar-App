@@ -7,19 +7,7 @@ interface LogoutData {
 
 const LogoutPage: React.FC = (): React.JSX.Element => {
     const logout = async (): Promise<void> => {       
-        const jsonData = {
-            "method": "POST",
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": JSON.stringify({
-                "userId": document.cookie.split("=")[1]
-            })
-        }
-
-        document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-        const response: Response = await fetch("/api/credentials/logout", jsonData);
+        const response: Response = await fetch("/api/credentials/logout", { "method": "POST", "credentials": "include" });
         const data: LogoutData = await response.json();
 
         if (data.error) {

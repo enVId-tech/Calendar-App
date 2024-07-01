@@ -27,7 +27,6 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import { EventsData } from "./modules/interface";
 import cookieParser from "cookie-parser";
 
-const MongoDBStore = connectMongoDBSession(session);
 const app: Express = express();
 
 app.use(express.json());
@@ -40,34 +39,6 @@ dotenv.config({ path: "./modules/credentials.env.local" });
 const SECRET: string = permanentEncryptPassword(
     generateRandomNumber(256, "alphanumeric").toString()
 );
-
-// Middleware to check for session cookie
-const checkSession = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const sessionId = req.sessionID;
-
-        if (sessionId) {
-            const fileData = JSON.parse(await getItemsFromDatabase("users", { session: sessionId }));
-
-            if (fileData && fileData.length === 1) {
-                return res.status(200).json({ status: 200, message: "Session ID found" });
-            } else if (fileData && fileData.length > 1) {
-                await deleteFromDatabase({ session: sessionId }, "sessions", "many");
-
-                for (const item of fileData) {
-                    item.session = null;
-                    await modifyInDatabase({ email: item.email }, item, "users");
-                }
-
-                return res.status(401).json({ status: 401, message: "Overutilized Session ID" });
-            }
-        }
-        next();
-    } catch (error) {
-        console.error("Error:", error);
-        next();
-    }
-};
 
 app.use(
     session({
@@ -230,10 +201,6 @@ app.post("/login/user", async (req, res) => {
     }
 });
 
-app.get("/login", checkSession, (req, res) => {
-    res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
-});
-
 app.post("/calendar/user/data", async (req, res) => {
     try {
         const data = req.body;
@@ -359,18 +326,24 @@ app.post("/post/password", async (req, res) => {
 
 app.post("/post/delete", async (req, res) => {
     try {
-        const data = req.body;
+        const data = req.cookies["userId"];
 
         if (!data) {
             throw new Error("No data found");
         }
 
-        const deleted = await deleteFromDatabase({ userId: data.userId }, "users", "one");
+        const deleted = await deleteFromDatabase({ userId: data }, "users", "one");
 
         if (!deleted) {
             res.status(404).json({ status: 404, message: "No data found" });
             throw new Error("No data found or error occurred");
         }
+
+        if (await getItemsFromDatabase("events", { userId: data })) {
+            await deleteFromDatabase({ userId: data }, "events", "one");
+        }
+
+        res.clearCookie("userId");
 
         res.status(200).json({ status: 200, message: "Data deleted" });
     } catch (error: unknown) {
@@ -418,7 +391,7 @@ app.post("/credentials/logout", async (req, res) => {
                 console.error("Session destruction error:", err);
                 return res.status(500).json({ status: 500, message: "Error during logout" });
             }
-            res.clearCookie("connect.sid");
+            res.clearCookie("userId");
             res.status(200).json({ status: 200, message: "Logged out" });
         });
 

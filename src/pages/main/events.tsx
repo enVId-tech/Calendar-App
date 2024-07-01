@@ -2,8 +2,7 @@
 import React from 'react';
 import '../../assets/scss/events.scss';
 import Sidebar from '../../assets/components/sidebar';
-import { EventData, UserData } from '../../assets/ts/interfaces';
-import getCookie from '../../assets/ts/getCookie';
+import { EventData } from '../../assets/ts/interfaces';
 
 const EventsPage: React.FC = (): React.JSX.Element => {
     const eventNameRef = React.useRef<HTMLInputElement>(null);

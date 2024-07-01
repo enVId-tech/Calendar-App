@@ -13,9 +13,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
     const getData = async () => {
         try {
-            const userId: string | null = document.cookie.split(';')[1].split('=')[1];
-
-            const userData: UserData[] | undefined | null = await getUserData(userId);
+            const userData: UserData[] | undefined | null = await getUserData();
 
             if (!userData) {
                 window.location.href = '/login';
@@ -46,17 +44,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
     const deleteAccount = async () => {
         try {
-            const dataJson = {
-                "method": "POST",
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": JSON.stringify({
-                    "userId": document.cookie.split(";")[1].split("=")[1]
-                })
-            }
-
-            const response = await fetch('/api/post/delete', dataJson);
+            const response = await fetch('/api/post/delete', { "method": "POST", "credentials": "include" });
             const data = await response.json();
 
             if (data.error) {

@@ -6,7 +6,6 @@ import { EventData, UserData } from '../../assets/ts/interfaces';
 import getUserData from '../../assets/ts/getUserData';
 import Sidebar from '../../assets/components/sidebar';
 import FormatCalendar from '../../assets/components/format-calendar';
-import getCookie from '../../assets/ts/getCookie';
 
 const HomePage: React.FC = (): React.JSX.Element => {
     const [data, setData] = React.useState<UserData | null | undefined>();
@@ -41,8 +40,6 @@ const HomePage: React.FC = (): React.JSX.Element => {
 
     const userData = async () => {
         try {
-            const userId: string | null = getCookie("userId");
-
             const userData: UserData[] | undefined | null = await getUserData();
 
             if (!userData) {
