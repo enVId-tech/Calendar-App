@@ -11,8 +11,21 @@ const Sidebar: React.FC = (): React.JSX.Element => {
             try {
                 const userData: UserData[] | undefined | null = await getUserData();
 
-                if (!userData) {
+                if (userData === null) {
                     window.location.href = '/login';
+                    return;
+                }
+
+                if (userData === undefined) {
+                    console.error('Guest account');
+                    setData({
+                        firstName: 'Guest',
+                        lastName: 'Account',
+                        email: '',
+                        profilePicture: 'https://www.kravemarketingllc.com/wp-content/uploads/2018/09/placeholder-user-500x500.png',
+                        displayName: 'Guest Account',
+                        hd: '',
+                    })
                     return;
                 }
 
@@ -25,7 +38,15 @@ const Sidebar: React.FC = (): React.JSX.Element => {
         fetchData();
     }, []);
 
-    const account = (): void => {
+    const account = async (): Promise<void> => {
+        if (await getUserData() === null) {
+            window.location.href = '/login';
+            return;
+        } else if (await getUserData() === undefined) {
+            alert('Guest accounts cannot access this page. Please login.');
+            return;
+        }
+
         window.location.href = '/account';
     }
 
@@ -33,7 +54,7 @@ const Sidebar: React.FC = (): React.JSX.Element => {
         <div id="sidebar">
             <div id="profile">
                 <img src={data?.profilePicture ? data?.profilePicture : "https://via.placeholder.com/150"} alt="Profile Picture" />
-                <h2>Logged in as <br/> {data?.firstName}</h2>
+                <h2>Logged in as <br /> {data?.firstName}</h2>
                 <button onClick={() => account()}>Account</button>
             </div>
             <div id="pages">

@@ -148,18 +148,12 @@ app.get("/auth/logout", (req, res) => {
 
 app.get("/login/guest", async (req, res) => {
     try {
-        const fileData = JSON.parse(await getItemsFromDatabase("users"));
-
-        if (!fileData) {
-            throw new Error("No data found");
-        }
-
         res.cookie("userId", "guest", {
             maxAge: 1000 * 60 * 60 * 24 * 1, // 1 day
             httpOnly: true,
         });
 
-        res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+        res.status(200).json({ status: 200, message: "Logged in as guest" });
     } catch (error: unknown) {
         console.error("Error:", error);
     }
@@ -216,6 +210,16 @@ app.post("/calendar/user/data", async (req, res) => {
 
 app.post("/post/user", async (req, res) => {
     try {
+        if (!req.cookies["userId"]) {
+            res.status(404).json({ status: 404, message: "No data found" });
+            return;
+        }
+
+        if (req.cookies["userId"] === "guest") {
+            res.status(401).json({ status: 401, message: "You must be logged in to view user data" });
+            return;
+        }
+
         const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: req.cookies["userId"] }));
 
         if (!fileData || fileData.length === 0) {

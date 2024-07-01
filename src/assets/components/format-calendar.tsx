@@ -25,7 +25,7 @@ const FormatCalendar: React.FC = (): React.JSX.Element => {
             newWeeksInCalendar.push(week.split(' ').filter((day: string) => day !== ''));
         });
 
-        setShortenedDate(`${newWeeksInCalendar[0][0]} ${today}, ${newWeeksInCalendar[0][1]}`);
+        setShortenedDate(`${newWeeksInCalendar[0][0]} ${year}`);
         newWeeksInCalendar.shift();
 
         setDaysOfWeek(newWeeksInCalendar[0]);
