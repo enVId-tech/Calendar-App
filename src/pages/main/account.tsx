@@ -37,7 +37,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
                 },
                 "body": JSON.stringify({
                     "userId": document.cookie.split(";")[1].split("=")[1]
-                })
+                }),
             }
 
             const response = await fetch('/api/credentials/logout', dataJson);

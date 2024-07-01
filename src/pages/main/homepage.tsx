@@ -53,7 +53,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
         try {
             const userId: string | null = getCookie("userId");
 
-            const userData: UserData[] | undefined | null = await getUserData(userId);
+            const userData: UserData[] | undefined | null = await getUserData();
 
             if (!userData) {
                 window.location.href = '/login';

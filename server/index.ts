@@ -25,6 +25,7 @@ import {
 } from "./modules/mongoDB";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { EventsData } from "./modules/interface";
+import cookieParser from "cookie-parser";
 
 const MongoDBStore = connectMongoDBSession(session);
 const app: Express = express();
@@ -32,6 +33,7 @@ const app: Express = express();
 app.use(express.json());
 app.use(cors({ origin: `http://${APP_HOSTNAME}:${CLIENT_PORT}`, credentials: true }));
 app.set("trust proxy", true);
+app.use(cookieParser());
 
 dotenv.config({ path: "./modules/credentials.env.local" });
 
@@ -262,15 +264,7 @@ app.post("/calendar/user/data", async (req, res) => {
 
 app.post("/post/user", async (req, res) => {
     try {
-        const data = req.body;
-
-        if (!data) {
-            throw new Error("No data found");
-        }
-
-        console.log(data.userId);
-
-        const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: data.userId }));
+        const fileData = JSON.parse(await getItemsFromDatabase("users", { userId: req.cookies["userId"] }));
 
         if (!fileData || fileData.length === 0) {
             throw new Error("No data found");
