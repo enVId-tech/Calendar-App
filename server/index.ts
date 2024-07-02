@@ -43,15 +43,18 @@ app.use(express.static(publicPath));
 
 dotenv.config({ path: "./modules/credentials.env.local" });
 
-const SECRET: string = permanentEncryptPassword(
-    generateRandomNumber(256, "alphanumeric").toString()
-);
+const SECRET: string = await generateRandomNumber(128, "alphanumeric");
 
 app.use(
     session({
         secret: SECRET,
         resave: false,
-        saveUninitialized: true,
+        saveUninitialized: false,
+        cookie: {
+            secure: false,
+            httpOnly: true,
+            maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
+        },
     })
 );
 
@@ -146,10 +149,7 @@ app.get(
 
 app.get("/auth/logout", (req, res) => {
     try {
-        req.session!.destroy(() => {
-            // res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
-            res.redirect('/');
-        });
+        res.clearCookie("userId");
         // res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
         res.redirect('/');
     } catch (error: unknown) {
@@ -409,7 +409,7 @@ app.post("/delete/events", async (req, res) => {
             res.status(400).json({ status: 400, message: "No data found" });
             return;
         }
-        
+
         const fileData: EventsData<EventsPrelim>[] = JSON.parse(await getItemsFromDatabase("events", { userId: data }));
 
         if (!fileData || fileData.length === 0) {
