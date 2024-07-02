@@ -14,7 +14,6 @@ import dotenv from "dotenv";
 import encrypts, {
     comparePassword,
     generateRandomNumber,
-    permanentEncryptPassword,
 } from "./modules/encryption";
 import {
     deleteFromDatabase,
@@ -494,15 +493,15 @@ app.post("/credentials/logout", async (req, res) => {
 });
 
 // Proxy (to the client, on port 5173)
-const proxyOptions = {
-    target: `http://${APP_HOSTNAME}:${CLIENT_PORT}`,
-    changeOrigin: true,
-    ws: true, // Enable WebSocket proxying
-};
+// const proxyOptions = {
+//     target: `http://${APP_HOSTNAME}:${CLIENT_PORT}`,
+//     changeOrigin: true,
+//     ws: true, // Enable WebSocket proxying
+// };
 
-const proxyVar = createProxyMiddleware(proxyOptions);
+// const proxyVar = createProxyMiddleware(proxyOptions);
 
-app.use("/", proxyVar);
+// app.use("/", proxyVar);
 
 app.listen(SERVER_PORT, () => {
     console.log(`Server is running at http://${APP_HOSTNAME}:${SERVER_PORT}`);
