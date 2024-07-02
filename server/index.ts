@@ -4,7 +4,7 @@ import {
     SERVER_PORT,
     CLIENT_ID,
     CLIENT_SECRET,
-    CLIENT_PORT,
+    // CLIENT_PORT,
 } from "./modules/env";
 // import session from "express-session";
 import session from "cookie-session";
@@ -25,7 +25,7 @@ import { EventsData, EventsPrelim } from "./modules/interface";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createProxyMiddleware } from "http-proxy-middleware";
+// import { createProxyMiddleware } from "http-proxy-middleware";
 
 const app: Express = express();
 
