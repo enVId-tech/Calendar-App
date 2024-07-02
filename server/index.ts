@@ -6,7 +6,8 @@ import {
     CLIENT_SECRET,
     CLIENT_PORT,
 } from "./modules/env";
-import session from "express-session";
+// import session from "express-session";
+import session from "cookie-session";
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
 import dotenv from "dotenv";
@@ -45,16 +46,25 @@ dotenv.config({ path: "./modules/credentials.env.local" });
 
 const SECRET: string = await generateRandomNumber(128, "alphanumeric");
 
+// app.use(
+//     session({
+//             secret: SECRET,
+//             resave: false,
+//             saveUninitialized: false,
+//             cookie: {
+//                 secure: false,
+//                 httpOnly: true,
+//                 maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
+//             },
+//         })
+// );
 app.use(
     session({
-        secret: SECRET,
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            secure: false,
-            httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
-        },
+        name: "session",
+        keys: [SECRET],
+        maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
+        secure: false,
+        httpOnly: true,
     })
 );
 
@@ -82,14 +92,11 @@ passport.use(
     )
 );
 
-app.get(
-    "/auth/google",
-    passport.authenticate("google", { scope: ["profile", "email"] })
-);
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get(
     "/auth/google/callback",
-    passport.authenticate("google"),
+    passport.authenticate("google", { session: false }),
     async (req, res) => {
         try {
             const userProfile: GoogleStrategy.Profile =
