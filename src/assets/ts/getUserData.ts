@@ -2,7 +2,7 @@ import { UserData } from "./interfaces";
 
 async function getUserData(): Promise<UserData[] | null | undefined> {
     try {
-        const response: Response = await fetch('/api/post/user', {"method": "POST", credentials: 'include'});
+        const response: Response = await fetch('/post/user', {"method": "POST", credentials: 'include'});
         
         if (response.status === 404) {
             console.error('Error: No user data found');

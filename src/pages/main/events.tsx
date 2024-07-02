@@ -47,7 +47,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                 })
             }
 
-            const response = await fetch('/api/post/events', { ...dataJson, "credentials": "include" });
+            const response = await fetch('/post/events', { ...dataJson, "credentials": "include" });
 
             if (response.status === 401) {
                 alert("You must be logged in to create an event");
@@ -73,7 +73,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
 
     const getEvents = async (): Promise<void> => {
         try {
-            const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
+            const response = await fetch('/get/events', { "method": "POST", "credentials": "include" });
 
             if (response.status === 401) {
                 alert("You must be logged in to view events");
@@ -110,7 +110,7 @@ const EventsPage: React.FC = (): React.JSX.Element => {
                 })
             }
 
-            const response = await fetch('/api/delete/events', { ...dataJson, "credentials": "include" });
+            const response = await fetch('/delete/events', { ...dataJson, "credentials": "include" });
             const data = await response.json();
 
             if (data.error) {

@@ -91,16 +91,12 @@ passport.use(
     )
 );
 
-app.get("/*", (req, res, next) => {
-    if (req.url.includes("/api/")) {
-        next();
-    } else {
-        res.sendFile(path.join(publicPath, "index.html"), (err) => {
-            if (err) {
-                res.status(500).send(err);
-            }
-        });
-    }
+app.get("/*", (req, res) => {
+    res.sendFile(path.join(publicPath, "index.html"), (err) => {
+        if (err) {
+            res.status(500).send(err);
+        }
+    });
 });
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));

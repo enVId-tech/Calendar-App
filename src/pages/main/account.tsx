@@ -28,7 +28,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
 
     const logout = async (): Promise<void> => {
         try {
-            const response = await fetch('/api/credentials/logout', { "method": "POST", "credentials": "include" });
+            const response = await fetch('/credentials/logout', { "method": "POST", "credentials": "include" });
             const data = await response.json();
 
             if (data.error) {
@@ -47,7 +47,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
                 return;
             }
 
-            const response = await fetch('/api/post/delete', { "method": "POST", "credentials": "include" });
+            const response = await fetch('/post/delete', { "method": "POST", "credentials": "include" });
 
             if (response.status === 401) {
                 alert('You must be logged in to delete your account');
@@ -91,7 +91,7 @@ const AccountPage: React.FC = (): React.JSX.Element => {
                 })
             }
 
-            const response = await fetch('/api/post/password', { ...dataJson, "credentials": "include" });
+            const response = await fetch('/post/password', { ...dataJson, "credentials": "include" });
             const data = await response.json();
 
             if (data.error) {

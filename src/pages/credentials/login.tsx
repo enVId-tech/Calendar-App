@@ -25,7 +25,7 @@ const LoginPage: React.FC = (): React.JSX.Element => {
         }
 
         try {
-            const response: Response = await fetch('/api/login/user', jsonData);
+            const response: Response = await fetch('/login/user', jsonData);
             const data: LoginData = await response.json();
 
             if (data.status === 200) {
@@ -47,12 +47,12 @@ const LoginPage: React.FC = (): React.JSX.Element => {
     };
 
     const googleLogin = async (): Promise<void> => {
-        window.location.href = '/api/auth/google';
+        window.location.href = '/auth/google';
     }
 
     const guestLogin = async (): Promise<void> => {
         try {
-            const response: Response = await fetch('/api/login/guest');
+            const response: Response = await fetch('/login/guest');
             const data: LoginData = await response.json();
 
             if (data.status === 200) {
@@ -69,7 +69,7 @@ const LoginPage: React.FC = (): React.JSX.Element => {
     React.useEffect(() => {
         const checkLogin = async (): Promise<void> => {
             try {
-                const response = await fetch('/api/login', {
+                const response = await fetch('/login', {
                     method: 'GET',
                     credentials: 'include',
                 });

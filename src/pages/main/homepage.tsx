@@ -13,7 +13,7 @@ const HomePage: React.FC = (): React.JSX.Element => {
 
     const getEvents = async (): Promise<void> => {
         try {
-            const response = await fetch('/api/get/events', { "method": "POST", "credentials": "include" });
+            const response = await fetch('/get/events', { "method": "POST", "credentials": "include" });
             
             if (response.status === 401) {
                 console.log("Guest account");
