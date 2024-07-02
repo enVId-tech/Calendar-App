@@ -45,18 +45,6 @@ dotenv.config({ path: "./modules/credentials.env.local" });
 
 const SECRET: string = await generateRandomNumber(128, "alphanumeric");
 
-// app.use(
-//     session({
-//             secret: SECRET,
-//             resave: false,
-//             saveUninitialized: false,
-//             cookie: {
-//                 secure: false,
-//                 httpOnly: true,
-//                 maxAge: 1000 * 60 * 60 * 24 * 3.5, // 3.5 days
-//             },
-//         })
-// );
 app.use(
     session({
         name: "session",
@@ -90,14 +78,6 @@ passport.use(
         }
     )
 );
-
-app.get("/*", (req, res) => {
-    res.sendFile(path.join(publicPath, "index.html"), (err) => {
-        if (err) {
-            res.status(500).send(err);
-        }
-    });
-});
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
@@ -235,13 +215,11 @@ app.post("/calendar/user/data", async (req, res) => {
 
 app.post("/post/user", async (req, res) => {
     try {
-        if (!req.cookies["userId"]) {
-            res.status(404).json({ status: 404, message: "No data found" });
-            return;
-        }
-
         if (req.cookies["userId"] === "guest") {
             res.status(401).json({ status: 401, message: "You must be logged in to view user data" });
+            return;
+        } else if (!req.cookies["userId"]) {
+            res.status(404).json({ status: 404, message: "No data found" });
             return;
         }
 
@@ -280,6 +258,7 @@ app.post("/post/events", async (req, res) => {
 
         if (!data) {
             res.status(400).json({ status: 400, message: "No data found" });
+            return;
         }
 
         dataValues.eventId = await generateRandomNumber(128, "alphanumeric");
@@ -500,16 +479,18 @@ app.post("/credentials/logout", async (req, res) => {
     }
 });
 
-// Proxy (to the client, on port 5173)
-// const proxyOptions = {
-//     target: `http://${APP_HOSTNAME}:${CLIENT_PORT}`,
-//     changeOrigin: true,
-//     ws: true, // Enable WebSocket proxying
-// };
+app.get("/*", (req, res) => {
+    if (req.url.includes("auth/google/callback") || req.url.includes("auth/google")) {
+        return;
+    } else {
+        res.sendFile(path.join(publicPath, "index.html"), (err) => {
+            if (err) {
+                res.status(500).send(err);
+            }
+        });
+    }
+});
 
-// const proxyVar = createProxyMiddleware(proxyOptions);
-
-// app.use("/", proxyVar);
 
 app.listen(SERVER_PORT, () => {
     console.log(`Server is running at http://${APP_HOSTNAME}:${SERVER_PORT}`);
