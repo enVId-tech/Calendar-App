@@ -17,7 +17,6 @@ const RenderPages: React.FC = (): React.JSX.Element => {
         {/* Redirects */}
         <Path path="/login/*" element={<Redirect to="/login" />} />
         <Path path="/logout/*" element={<Redirect to="/logout" />} />
-        <Path path="/*" element={<Redirect to="/" />} />
         <Path path="/events/*" element={<Redirect to="/events" />} />
         <Path path="/calendar/*" element={<Redirect to="/calendar" />} />
         <Path path="/account/*" element={<Redirect to="/account" />} />
