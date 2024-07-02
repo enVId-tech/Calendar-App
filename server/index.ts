@@ -4,12 +4,10 @@ import {
     SERVER_PORT,
     CLIENT_ID,
     CLIENT_SECRET,
-    CLIENT_PORT,
 } from "./modules/env";
 import session from "express-session";
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
-import cors from "cors";
 import dotenv from "dotenv";
 import encrypts, {
     comparePassword,
@@ -22,16 +20,32 @@ import {
     modifyInDatabase,
     writeToDatabase,
 } from "./modules/mongoDB";
-import { createProxyMiddleware } from "http-proxy-middleware";
 import { EventsData, EventsPrelim } from "./modules/interface";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app: Express = express();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(express.json());
-app.use(cors({ origin: `http://${APP_HOSTNAME}:${CLIENT_PORT}`, credentials: true }));
 app.set("trust proxy", true);
 app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+
+// Host the client
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath));
+
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(publicPath, '/index.html'), (err) => {
+        if (err) {
+            res.status(500).send(err);
+        }
+    });
+});
 
 dotenv.config({ path: "./modules/credentials.env.local" });
 
@@ -128,7 +142,8 @@ app.get(
                 });
             }
 
-            res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+            // res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+            res.redirect('/');
         } catch (error: unknown) {
             console.error("Error:", error as string);
         }
@@ -138,9 +153,11 @@ app.get(
 app.get("/auth/logout", (req, res) => {
     try {
         req.session!.destroy(() => {
-            res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+            // res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+            res.redirect('/');
         });
-        res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+        // res.redirect(`http://${APP_HOSTNAME}:${CLIENT_PORT}`);
+        res.redirect('/');
     } catch (error: unknown) {
         console.error("Error:", error as string);
     }
@@ -475,15 +492,15 @@ app.post("/credentials/logout", async (req, res) => {
 });
 
 // Proxy (to the client, on port 5173)
-const proxyOptions = {
-    target: `http://${APP_HOSTNAME}:${CLIENT_PORT}`,
-    changeOrigin: true,
-    ws: true, // Enable WebSocket proxying
-};
+// const proxyOptions = {
+//     target: `http://${APP_HOSTNAME}:${CLIENT_PORT}`,
+//     changeOrigin: true,
+//     ws: true, // Enable WebSocket proxying
+// };
 
-const proxyVar = createProxyMiddleware(proxyOptions);
+// const proxyVar = createProxyMiddleware(proxyOptions);
 
-app.use("/", proxyVar);
+// app.use("/", proxyVar);
 
 app.listen(SERVER_PORT, () => {
     console.log(`Server is running at http://${APP_HOSTNAME}:${SERVER_PORT}`);
