@@ -53,13 +53,12 @@ const LoginPage: React.FC = (): React.JSX.Element => {
     const guestLogin = async (): Promise<void> => {
         try {
             const response: Response = await fetch('/login/guest');
-            const data: LoginData = await response.json();
 
-            if (data.status === 200) {
+            if (response.status === 200) {
                 // console.log('Login successful!');
                 window.location.href = '/';
             } else {
-                console.error('Login failed:', data.message);
+                console.error('Login failed:', response);
             }
         } catch (error: unknown) {
             console.error('Error:', error as string);
