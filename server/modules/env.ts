@@ -35,7 +35,7 @@ const CLIENT_PORT: number = parseInt(process.env.CLIENT_PORT!) || 3000;
 /**
  * The port number for the server.
  */
-const SERVER_PORT: number = parseInt(process.env.SERVER_PORT!) || 3001;
+const SERVER_PORT: number = process.env.PORT as unknown as number || parseInt(process.env.SERVER_PORT!) || 3001;
 
 const env: object = {
     URI,
