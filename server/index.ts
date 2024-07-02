@@ -4,6 +4,7 @@ import {
     SERVER_PORT,
     CLIENT_ID,
     CLIENT_SECRET,
+    CLIENT_PORT,
 } from "./modules/env";
 import session from "express-session";
 import passport from "passport";
@@ -24,6 +25,7 @@ import { EventsData, EventsPrelim } from "./modules/interface";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createProxyMiddleware } from "http-proxy-middleware";
 
 const app: Express = express();
 
@@ -36,16 +38,8 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 // Host the client
-const publicPath = path.join(__dirname, 'public');
+const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
-
-app.get('/*', (req, res) => {
-    res.sendFile(path.join(publicPath, '/index.html'), (err) => {
-        if (err) {
-            res.status(500).send(err);
-        }
-    });
-});
 
 dotenv.config({ path: "./modules/credentials.env.local" });
 
@@ -404,6 +398,7 @@ app.post("/delete/events", async (req, res) => {
     try {
         const data = req.cookies["userId"];
         const eventId = req.body.eventId;
+        console.log(data, eventId);
 
         if (data === "guest") {
             res.status(401).json({ status: 401, message: "You must be logged in to delete events" });
@@ -414,7 +409,7 @@ app.post("/delete/events", async (req, res) => {
             res.status(400).json({ status: 400, message: "No data found" });
             return;
         }
-
+        
         const fileData: EventsData<EventsPrelim>[] = JSON.parse(await getItemsFromDatabase("events", { userId: data }));
 
         if (!fileData || fileData.length === 0) {
@@ -492,15 +487,15 @@ app.post("/credentials/logout", async (req, res) => {
 });
 
 // Proxy (to the client, on port 5173)
-// const proxyOptions = {
-//     target: `http://${APP_HOSTNAME}:${CLIENT_PORT}`,
-//     changeOrigin: true,
-//     ws: true, // Enable WebSocket proxying
-// };
+const proxyOptions = {
+    target: `http://${APP_HOSTNAME}:${CLIENT_PORT}`,
+    changeOrigin: true,
+    ws: true, // Enable WebSocket proxying
+};
 
-// const proxyVar = createProxyMiddleware(proxyOptions);
+const proxyVar = createProxyMiddleware(proxyOptions);
 
-// app.use("/", proxyVar);
+app.use("/", proxyVar);
 
 app.listen(SERVER_PORT, () => {
     console.log(`Server is running at http://${APP_HOSTNAME}:${SERVER_PORT}`);
