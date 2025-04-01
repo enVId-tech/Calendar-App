@@ -19,7 +19,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "esm": "^3.2.25",
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "express-http-proxy": "^2.0.0",
     "express-session": "^1.18.0",
     "http-proxy": "^1.18.1",
