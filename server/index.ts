@@ -9,7 +9,7 @@ import {
 // import session from "express-session";
 import session from "cookie-session";
 import passport from "passport";
-import GoogleStrategy from "passport-google-oauth20";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import dotenv from "dotenv";
 import encrypts, {
     comparePassword,
@@ -25,6 +25,7 @@ import { EventsData, EventsPrelim } from "./modules/interface";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
+import Strategy from "passport-google-oauth20";
 // import { createProxyMiddleware } from "http-proxy-middleware";
 
 const app: Express = express();
@@ -69,8 +70,8 @@ passport.deserializeUser((user, done) => {
 passport.use(
     new GoogleStrategy(
         {
-            clientID: CLIENT_ID,
-            clientSecret: CLIENT_SECRET,
+            clientID: CLIENT_ID as string,
+            clientSecret: CLIENT_SECRET as string,
             callbackURL: "/auth/google/callback",
         },
         (accessToken, refreshToken, profile, done) => {
@@ -86,8 +87,8 @@ app.get(
     passport.authenticate("google", { session: false }),
     async (req, res) => {
         try {
-            const userProfile: GoogleStrategy.Profile =
-                req.user as GoogleStrategy.Profile;
+            const userProfile: Strategy.Profile =
+                req.user as Strategy.Profile;
 
             if (!userProfile) {
                 throw new Error("No user profile found");
@@ -464,9 +465,13 @@ app.post("/credentials/logout", async (req, res) => {
 
         res.clearCookie("userId");
 
-        req.session.destroy((err) => {
+        if (!req.session) {
+            return res.status(400).json({ status: 400, message: "No session found" });
+        }
+
+        req.session.destroy((err: unknown) => {
             if (err) {
-                console.error("Session destruction error:", err);
+                console.error("Session destruction error:", err as string);
                 return res.status(500).json({ status: 500, message: "Error during logout" });
             }
             res.clearCookie("userId");
